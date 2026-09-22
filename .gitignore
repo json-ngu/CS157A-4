@@ -1,0 +1,20 @@
+target/
+*.war
+*.class
+
+# Local config with real passwords
+src/main/resources/db.properties
+
+# Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+
+# VS Code / IntelliJ
+.vscode/
+.idea/
+*.iml
+
+# macOS
+.DS_Store
