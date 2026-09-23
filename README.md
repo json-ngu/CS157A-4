@@ -3,6 +3,8 @@
 - This allows my team members (Andrew and Hailey), to make sure they will have the project set up exactly the way it should be set up. The earlier we can be on the same page, the fewer consistencies and troubleshooting we will encounter later on during the course of the project.
 - This is also why I kept the website initially barebones (as submitted on Canvas) since it allowed my team members to test as well as troubleshoot for any problems (on either end) before we work on the actual landing page.
 
+Both my team members have made great contributions to the starting stages of the project especially during the proposal document writing process. They've provided awesome suggestions and ideas for the project so team contribution isn't a worry.
+
 # MindMerge
 ### Written by Jason Nguyen (Updated as of September 22, 2026)
 
