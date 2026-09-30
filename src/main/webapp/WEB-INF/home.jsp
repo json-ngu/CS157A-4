@@ -25,14 +25,49 @@
   <div class="bar">
     <a class="wordmark" href="${pageContext.request.contextPath}/home">MindMerge</a>
     <nav class="nav">
-      <a href="#problem">Why</a>
-      <a href="#how">How it works</a>
-      <a href="#demo">Demo</a>
-      <a href="#decisions">Decisions</a>
-      <button class="theme-toggle" type="button" id="themeToggle" aria-pressed="true" hidden>
-        <span class="theme-swatch" aria-hidden="true"></span><span class="theme-label">Dark</span>
-      </button>
-    </nav>
+
+    <a href="#problem">Why</a>
+    <a href="#how">How it works</a>
+    <a href="#demo">Demo</a>
+    <a href="#decisions">Decisions</a>
+
+    <c:choose>
+
+        <c:when test="${not empty sessionScope.user}">
+            <span>
+                Hi,
+                <c:out value="${sessionScope.user.displayName}"/>
+            </span>
+
+            <a href="${pageContext.request.contextPath}/logout">
+                Log out
+            </a>
+        </c:when>
+
+        <c:otherwise>
+            <a href="${pageContext.request.contextPath}/login">
+                Log in
+            </a>
+
+            <a href="${pageContext.request.contextPath}/register">
+                Register
+            </a>
+        </c:otherwise>
+
+    </c:choose>
+
+    <button class="theme-toggle"
+            type="button"
+            id="themeToggle"
+            aria-pressed="true"
+            hidden>
+
+        <span class="theme-swatch" aria-hidden="true"></span>
+        <span class="theme-label">Dark</span>
+
+    </button>
+
+</nav>
   </div>
 </header>
 
