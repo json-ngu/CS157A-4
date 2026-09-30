@@ -40,10 +40,10 @@ public class RegisterServlet extends HttpServlet {
         String confirmPassword =
                 request.getParameter("confirmPassword");
 
-        if (username.isBlank()
-                || displayName.isBlank()
+        if (username.trim().isEmpty()
+                || displayName.trim().isEmpty()
                 || password == null
-                || password.isBlank()) {
+                || password.trim().isEmpty()) {
 
             request.setAttribute(
                     "error",
