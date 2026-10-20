@@ -5,7 +5,14 @@
     <a href="#principles">Features</a>
   </nav>
   <div class="topbar-actions">
-    <a class="pill pill-ghost" href="${pageContext.request.contextPath}/login">Log in</a>
-    <a class="pill pill-glow" href="${pageContext.request.contextPath}/register">Get started</a>
+    <c:choose>
+      <c:when test="${not empty sessionScope.user}">
+        <a class="pill pill-glow" href="${pageContext.request.contextPath}/dashboard">Dashboard</a>
+      </c:when>
+      <c:otherwise>
+        <a class="pill pill-ghost" href="${pageContext.request.contextPath}/login">Log in</a>
+        <a class="pill pill-glow" href="${pageContext.request.contextPath}/register">Get started</a>
+      </c:otherwise>
+    </c:choose>
   </div>
 </header>

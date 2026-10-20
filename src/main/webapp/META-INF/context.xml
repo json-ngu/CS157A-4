@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Session cookie gets SameSite=Lax: browsers won't send it with a form posted from another
+     site, so other sites can't make changes as a signed-in user (CSRF). -->
+<Context>
+  <CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor" sameSiteCookies="lax"/>
+</Context>

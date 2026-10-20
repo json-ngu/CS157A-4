@@ -88,8 +88,7 @@ public class PeopleServlet extends HttpServlet {
                     remove(request, user, myRole, companyId);
                     break;
                 case "cancel":
-                    inviteDao.cancel(Auth.intParam(request, "invite"), companyId);
-                    Auth.flash(request, "Invite cancelled.", false);
+                    cancel(request, myRole, companyId);
                     break;
                 default:
                     Auth.flash(request, "Unknown action.", true);
@@ -113,6 +112,21 @@ public class PeopleServlet extends HttpServlet {
             Auth.flash(request, "Invite sent to " + email + ". It will appear on their dashboard.", false);
         } else {
             Auth.flash(request, INVITE_FAILED, true);
+        }
+    }
+
+    // Admin invites are sent by owners, so only an owner can cancel one.
+    private void cancel(HttpServletRequest request, String myRole, int companyId) throws SQLException {
+        int inviteId = Auth.intParam(request, "invite");
+        String role = inviteDao.findRole(inviteId, companyId);
+
+        if (role == null) {
+            Auth.flash(request, "That invite is no longer pending.", true);
+        } else if ("admin".equals(role) && !"owner".equals(myRole)) {
+            Auth.flash(request, "Only an owner can cancel an admin invite.", true);
+        } else {
+            inviteDao.cancel(inviteId, companyId);
+            Auth.flash(request, "Invite cancelled.", false);
         }
     }
 

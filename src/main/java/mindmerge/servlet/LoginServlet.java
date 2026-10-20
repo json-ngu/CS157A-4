@@ -2,6 +2,7 @@ package mindmerge.servlet;
 
 import mindmerge.dao.UserDao;
 import mindmerge.model.User;
+import mindmerge.util.Auth;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -27,6 +28,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
+        Auth.consumeFlash(request);
         showForm(request, response, null);
     }
 

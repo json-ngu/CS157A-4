@@ -59,12 +59,15 @@
                   <p class="row-title"><c:out value="${inv.userName}"/> <span class="muted"><c:out value="${inv.userEmail}"/></span></p>
                   <p class="row-meta">Invited as <c:out value="${inv.role}"/> by <c:out value="${inv.invitedByName}"/> on <c:out value="${inv.createdDate}"/></p>
                 </div>
-                <form method="post" action="${pageContext.request.contextPath}/people">
-                  <input type="hidden" name="company" value="${company.companyId}">
-                  <input type="hidden" name="action" value="cancel">
-                  <input type="hidden" name="invite" value="${inv.inviteId}">
-                  <button class="pill pill-ghost pill-sm" type="submit">Cancel invite</button>
-                </form>
+                <%-- Admin invites come from owners, so only owners can cancel them. --%>
+                <c:if test="${iAmOwner or inv.role ne 'admin'}">
+                  <form method="post" action="${pageContext.request.contextPath}/people">
+                    <input type="hidden" name="company" value="${company.companyId}">
+                    <input type="hidden" name="action" value="cancel">
+                    <input type="hidden" name="invite" value="${inv.inviteId}">
+                    <button class="pill pill-ghost pill-sm" type="submit">Cancel invite</button>
+                  </form>
+                </c:if>
               </li>
             </c:forEach>
           </ul>
@@ -92,7 +95,7 @@
               <c:set var="canRemove" value="${iAmOwner or m.role eq 'member' or isMe}"/>
               <tr>
                 <td data-label="Name">
-                  <p class="row-title"><c:out value="${m.fullName}"/><c:if test="${m.userId == sessionScope.user.userId}"> <span class="muted">(you)</span></c:if></p>
+                  <p class="row-title"><c:out value="${m.fullName}"/><c:if test="${m.userId == sessionScope.user.userId}"> <span class="muted">(you)</span></c:if><c:if test="${m.status eq 'invited'}"> <span class="status-badge">Invited</span></c:if><c:if test="${m.status eq 'deactivated'}"> <span class="status-badge is-off">Deactivated</span></c:if></p>
                   <p class="row-meta"><c:out value="${m.email}"/></p>
                 </td>
                 <td data-label="Role">

@@ -34,8 +34,15 @@ public class UserDao {
         "             AND e.company_role IN ('owner', 'admin')) AS is_admin " +
         "FROM `user` u WHERE u.user_id = ?";
 
+    private static final String IS_ACTIVE =
+        "SELECT 1 FROM `user` WHERE user_id = ? AND status = 'active'";
+
     private static final String SET_ALLOW_INVITES =
         "UPDATE `user` SET allow_invites = ? WHERE user_id = ?";
+
+    private static final String CANCEL_PENDING_INVITES =
+        "UPDATE company_invite SET status = 'cancelled', responded_at = NOW() " +
+        "WHERE user_id = ? AND status = 'pending'";
 
     /** Throws SQLException with error code 1062 when the email is already registered. */
     public void createUser(String fullName, String email, String password) throws SQLException {
@@ -89,13 +96,38 @@ public class UserDao {
         }
     }
 
-    public void setAllowInvites(int userId, boolean allow) throws SQLException {
+    public boolean isActive(int userId) throws SQLException {
         try (Connection conn = DbUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SET_ALLOW_INVITES)) {
+             PreparedStatement ps = conn.prepareStatement(IS_ACTIVE)) {
 
-            ps.setBoolean(1, allow);
-            ps.setInt(2, userId);
-            ps.executeUpdate();
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /** Turning invites off also cancels the user's pending invites (kept as history). */
+    public void setAllowInvites(int userId, boolean allow) throws SQLException {
+        try (Connection conn = DbUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(SET_ALLOW_INVITES)) {
+                    ps.setBoolean(1, allow);
+                    ps.setInt(2, userId);
+                    ps.executeUpdate();
+                }
+                if (!allow) {
+                    try (PreparedStatement ps = conn.prepareStatement(CANCEL_PENDING_INVITES)) {
+                        ps.setInt(1, userId);
+                        ps.executeUpdate();
+                    }
+                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         }
     }
 

@@ -14,6 +14,7 @@
   <c:if test="${not empty error}">
     <p class="alert" role="alert"><c:out value="${error}"/></p>
   </c:if>
+  <%@ include file="/WEB-INF/jspf/notice.jspf" %>
   <c:if test="${param.registered eq 'true'}">
     <p class="notice">Account created. You can log in now.</p>
   </c:if>

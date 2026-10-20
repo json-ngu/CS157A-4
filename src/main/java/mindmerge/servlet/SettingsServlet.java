@@ -48,7 +48,7 @@ public class SettingsServlet extends HttpServlet {
         try {
             userDao.setAllowInvites(user.getUserId(), allow);
             Auth.flash(request, allow ? "Invites are on. Companies can invite you."
-                                      : "Invites are off. No company can invite you.", false);
+                                      : "Invites are off. No company can invite you, and pending invites were cancelled.", false);
         } catch (SQLException e) {
             getServletContext().log("Could not save settings", e);
             Auth.flash(request, "The database is unavailable. Your setting wasn't saved.", true);

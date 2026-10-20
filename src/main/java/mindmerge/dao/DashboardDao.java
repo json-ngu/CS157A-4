@@ -38,7 +38,9 @@ public class DashboardDao {
         "WHERE d.status = 'proposed' AND tm.team_role IN ('lead', 'approver') " +
         "ORDER BY d.created_at DESC";
 
-    private static final String FEED_ORDER = "ORDER BY COALESCE(d.decided_at, d.created_at) DESC LIMIT 12";
+    private static final String FEED_ORDER = "ORDER BY COALESCE(d.decided_at, d.created_at) DESC ";
+    private static final int RECENT_LIMIT = 12;  // the plain Recent decisions list
+    private static final int SEARCH_LIMIT = 200; // a search shows every match, up to this safety cap
 
     private static final String FIND_PROJECTS =
         "SELECT p.project_id, p.name, p.status, t.name AS team_name, " +
@@ -62,7 +64,7 @@ public class DashboardDao {
     }
 
     /**
-     * Recent decisions across the viewer's teams, newest first.
+     * Recent decisions across the viewer's teams, newest first: the latest 12, or every match when searching.
      * mineOnly limits it to decisions the viewer recorded; query is a full-text search (may be empty).
      */
     public List<Decision> findFeed(int userId, boolean mineOnly, String query) throws SQLException {
@@ -71,7 +73,7 @@ public class DashboardDao {
         StringBuilder sql = new StringBuilder(DECISIONS).append("WHERE 1 = 1 ");
         if (mineOnly) sql.append("AND d.created_by = ? ");
         if (search != null) sql.append("AND MATCH (d.title, d.context, d.rationale) AGAINST (? IN BOOLEAN MODE) ");
-        sql.append(FEED_ORDER);
+        sql.append(FEED_ORDER).append("LIMIT ").append(search == null ? RECENT_LIMIT : SEARCH_LIMIT);
 
         try (Connection conn = DbUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {

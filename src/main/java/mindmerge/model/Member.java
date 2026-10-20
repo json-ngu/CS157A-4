@@ -13,6 +13,7 @@ public class Member {
     private String        fullName;
     private String        email;
     private String        role;
+    private String        status;   // the account's user.status (company members only)
     private LocalDateTime joinedAt;
 
     public int getUserId()                  { return userId; }
@@ -26,6 +27,9 @@ public class Member {
 
     public String getRole()                 { return role; }
     public void setRole(String v)           { this.role = v; }
+
+    public String getStatus()               { return status; }
+    public void setStatus(String v)         { this.status = v; }
 
     public LocalDateTime getJoinedAt()      { return joinedAt; }
     public void setJoinedAt(LocalDateTime v) { this.joinedAt = v; }

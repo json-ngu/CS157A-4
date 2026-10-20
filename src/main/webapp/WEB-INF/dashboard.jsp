@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="pageTitle" value="Dashboard | MindMerge"/>
 <%@ include file="/WEB-INF/jspf/head.jspf" %>
 <body>
@@ -91,7 +92,7 @@
           <div class="section-bar">
             <h2 id="feedHeading">
               <c:choose>
-                <c:when test="${not empty q}">Results for “<c:out value="${q}"/>”</c:when>
+                <c:when test="${not empty q}">Results for “<c:out value="${q}"/>” <span class="muted"><c:out value="${fn:length(feed)}"/> <c:out value="${fn:length(feed) == 1 ? 'decision' : 'decisions'}"/></span></c:when>
                 <c:otherwise>Recent decisions</c:otherwise>
               </c:choose>
             </h2>

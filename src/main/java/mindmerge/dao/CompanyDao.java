@@ -36,13 +36,15 @@ public class CompanyDao {
         "SELECT company_role FROM employee WHERE company_id = ? AND user_id = ? AND left_at IS NULL";
 
     private static final String FIND_MEMBERS =
-        "SELECT u.user_id, u.full_name, u.email, e.company_role AS role, e.joined_at " +
+        "SELECT u.user_id, u.full_name, u.email, u.status, e.company_role AS role, e.joined_at " +
         "FROM employee e JOIN `user` u ON u.user_id = e.user_id " +
         "WHERE e.company_id = ? AND e.left_at IS NULL " +
         "ORDER BY FIELD(e.company_role, 'owner', 'admin', 'member'), u.full_name";
 
+    // Only active accounts count: a deactivated owner can't manage the company.
     private static final String COUNT_OWNERS =
-        "SELECT COUNT(*) FROM employee WHERE company_id = ? AND company_role = 'owner' AND left_at IS NULL";
+        "SELECT COUNT(*) FROM employee e JOIN `user` u ON u.user_id = e.user_id " +
+        "WHERE e.company_id = ? AND e.company_role = 'owner' AND e.left_at IS NULL AND u.status = 'active'";
 
     private static final String CHANGE_ROLE =
         "UPDATE employee SET company_role = ? WHERE company_id = ? AND user_id = ? AND left_at IS NULL";
@@ -183,6 +185,7 @@ public class CompanyDao {
         m.setFullName(rs.getString("full_name"));
         m.setEmail(rs.getString("email"));
         m.setRole(rs.getString("role"));
+        m.setStatus(rs.getString("status"));
         Timestamp joined = rs.getTimestamp("joined_at");
         m.setJoinedAt(joined == null ? null : joined.toLocalDateTime());
         return m;

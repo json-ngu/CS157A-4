@@ -7,6 +7,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Locale;
@@ -64,6 +65,11 @@ public class RegisterServlet extends HttpServlet {
 
         try {
             userDao.createUser(fullName, email, password);
+            // Sign out anyone already signed in here, so the new account can log in.
+            HttpSession old = request.getSession(false);
+            if (old != null) {
+                old.invalidate();
+            }
             response.sendRedirect(request.getContextPath() + "/login?registered=true");
         } catch (SQLException e) {
             if (e.getErrorCode() == DUPLICATE_KEY) {

@@ -48,6 +48,9 @@ public class InviteDao {
     private static final String RESPOND =
         "UPDATE company_invite SET status = ?, responded_at = NOW() WHERE invite_id = ?";
 
+    private static final String FIND_PENDING_ROLE =
+        "SELECT company_role FROM company_invite WHERE invite_id = ? AND company_id = ? AND status = 'pending'";
+
     private static final String CANCEL =
         "UPDATE company_invite SET status = 'cancelled', responded_at = NOW() " +
         "WHERE invite_id = ? AND company_id = ? AND status = 'pending'";
@@ -128,6 +131,19 @@ public class InviteDao {
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
+            }
+        }
+    }
+
+    /** The role a pending invite in this company offers, or null when there is no such invite. */
+    public String findRole(int inviteId, int companyId) throws SQLException {
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(FIND_PENDING_ROLE)) {
+
+            ps.setInt(1, inviteId);
+            ps.setInt(2, companyId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString(1) : null;
             }
         }
     }

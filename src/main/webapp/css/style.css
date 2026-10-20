@@ -1973,6 +1973,24 @@ body.auth .grain {
   text-transform: capitalize;
 }
 
+/* Account status next to a member's name: not signed up yet, or closed. */
+.status-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  vertical-align: 1px;
+}
+
+.status-badge.is-off {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
 .link-danger {
   padding: 4px 0;
   font: inherit;
