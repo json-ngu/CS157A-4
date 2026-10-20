@@ -2,49 +2,20 @@ package mindmerge.model;
 
 public class User {
 
-    private int userId;
+    private int    userId;
     private String username;
     private String displayName;
-    private String passwordHash;
     private String role;
 
-    public int getUserId() {
-        return userId;
-    }
+    public int getUserId()               { return userId; }
+    public void setUserId(int v)         { this.userId = v; }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
+    public String getUsername()          { return username; }
+    public void setUsername(String v)    { this.username = v; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getDisplayName()       { return displayName; }
+    public void setDisplayName(String v) { this.displayName = v; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
+    public String getRole()              { return role; }
+    public void setRole(String v)        { this.role = v; }
 }

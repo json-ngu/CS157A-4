@@ -1,342 +1,220 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script>
-    (function () {
-      var theme = "dark";
-      try { if (localStorage.getItem("mm-theme") === "light") theme = "light"; } catch (e) {}
-      document.documentElement.setAttribute("data-theme", theme);
-    })();
-  </script>
-  <title>MindMerge</title>
-  <meta name="description" content="MindMerge records the reasoning behind a team's decisions so it can be found again later.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-</head>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<c:set var="pageTitle" value="MindMerge"/>
+<%@ include file="/WEB-INF/jspf/head.jspf" %>
 <body>
+<c:choose>
+<c:when test="${not empty sessionScope.user}">
+<%-- Logged in: the decision list. This becomes the dashboard. --%>
+<div class="app">
+  <%@ include file="/WEB-INF/jspf/sidebar.jspf" %>
 
-<header class="site-header">
-  <div class="bar">
-    <a class="wordmark" href="${pageContext.request.contextPath}/home">MindMerge</a>
-    <nav class="nav">
-
-    <a href="#problem">Why</a>
-    <a href="#how">How it works</a>
-    <a href="#demo">Demo</a>
-    <a href="#decisions">Decisions</a>
+  <main class="app-main">
+    <header class="page-head">
+      <h1>Decisions</h1>
+      <c:if test="${empty error}">
+        <p class="page-count">
+          <c:out value="${fn:length(decisions)}"/>
+          <c:out value="${fn:length(decisions) == 1 ? 'decision' : 'decisions'}"/>
+        </p>
+      </c:if>
+    </header>
 
     <c:choose>
-
-        <c:when test="${not empty sessionScope.user}">
-            <span>
-                Hi,
-                <c:out value="${sessionScope.user.displayName}"/>
-            </span>
-
-            <a href="${pageContext.request.contextPath}/logout">
-                Log out
-            </a>
-        </c:when>
-
-        <c:otherwise>
-            <a href="${pageContext.request.contextPath}/login">
-                Log in
-            </a>
-
-            <a href="${pageContext.request.contextPath}/register">
-                Register
-            </a>
-        </c:otherwise>
-
+      <c:when test="${not empty error}">
+        <p class="alert" role="alert"><c:out value="${error}"/></p>
+      </c:when>
+      <c:when test="${empty decisions}">
+        <p class="empty">No decisions recorded yet.</p>
+      </c:when>
+      <c:otherwise>
+        <table class="decisions">
+          <thead>
+            <tr>
+              <th scope="col">Decision</th>
+              <th scope="col">Chose</th>
+              <th scope="col">Decided by</th>
+              <th scope="col">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <c:forEach var="d" items="${decisions}">
+              <tr>
+                <td class="decision-cell">
+                  <p class="decision-title"><c:out value="${d.title}"/></p>
+                  <p class="decision-why"><c:out value="${d.rationale}"/></p>
+                </td>
+                <td class="chose" data-label="Chose"><c:out value="${d.chosenOption}"/></td>
+                <td data-label="Decided by"><c:out value="${d.decidedBy}"/></td>
+                <td class="date" data-label="Date"><c:out value="${d.decidedAt}"/></td>
+              </tr>
+            </c:forEach>
+          </tbody>
+        </table>
+      </c:otherwise>
     </c:choose>
+  </main>
+</div>
+</c:when>
 
-    <button class="theme-toggle"
-            type="button"
-            id="themeToggle"
-            aria-pressed="true"
-            hidden>
-
-        <span class="theme-swatch" aria-hidden="true"></span>
-        <span class="theme-label">Dark</span>
-
-    </button>
-
-</nav>
-  </div>
-</header>
-
+<c:otherwise>
+<%-- Logged out: the landing page. --%>
 <main>
+<div class="hero">
+  <div class="hero-light" aria-hidden="true"><div class="hero-beam"></div></div>
+  <canvas class="hero-canvas" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
 
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-copy">
-        <p class="kicker"><span class="kicker-dot"></span>Decision memory for teams</p>
-        <h1>Six months from now, someone will ask <em>why.</em></h1>
-        <p class="lede">
-          Organizations make consequential decisions every week: which database to adopt,
-          which vendor to engage, which feature to cut. The outcome is recorded. The
-          reasoning behind it rarely is. MindMerge captures the context, the alternatives
-          considered, and the justification for the final choice, so that reasoning remains
-          available long after the people involved have moved on.
-        </p>
-        <div class="actions">
-          <a class="btn" href="#decisions">See recent decisions (Testing)</a>
-          <a class="btn btn-quiet" href="#how">How it works</a>
-        </div>
-      </div>
+  <%@ include file="/WEB-INF/jspf/topbar.jspf" %>
 
-      <div class="hero-visual" aria-hidden="true">
-        <div class="record record-old">
-          <div class="record-old-row">
-            <p class="record-id">Decision 12</p>
-            <p class="record-title">Keep sessions in server memory</p>
-            <span class="stamp">Superseded</span>
-          </div>
-        </div>
+  <div class="hero-body">
+    <h1>Remember why you decided.</h1>
+    <a class="pill pill-glow pill-lg" href="${pageContext.request.contextPath}/register">Log your first decision</a>
+  </div>
 
-        <div class="record record-new">
-          <div class="record-top">
-            <p class="record-id">Decision 31</p>
-            <span class="pill pill-sage">Active</span>
-          </div>
-          <p class="record-title">Move session storage to Postgres</p>
+  <div class="hero-foot">
+    <p class="hero-lede">
+      MindMerge keeps track of what your team considered, what you picked and why,
+      so nobody has to dig through old chats to find out.
+    </p>
+    <p class="hero-note">
+      <svg class="mark" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 1 9 9M9 1 1 9"/></svg>
+      Old decisions are never deleted. You can always see what changed and why.
+    </p>
+  </div>
+</div>
 
-          <p class="field-label">Context</p>
-          <p class="field-text">Sessions are lost on every deploy and the second server cannot see them.</p>
+<section class="section intro" id="how">
+  <div class="intro-copy fade" data-reveal>
+    <h2 class="display">Decisions get made. The reasons get lost.</h2>
+    <p>
+      Most choices happen in a quick meeting or a chat thread. A few weeks later,
+      nobody remembers why.
+    </p>
+    <p>
+      MindMerge gives each decision a simple page: what was going on, the options you
+      looked at, what you picked and why.
+    </p>
+  </div>
 
-          <p class="field-label">Options considered</p>
-          <ul class="options">
-            <li class="opt">Redis cache</li>
-            <li class="opt is-chosen">Postgres table</li>
-            <li class="opt">Sticky sessions</li>
-          </ul>
+  <%-- An example record, drawn in the product's own style. Illustration only. --%>
+  <div class="record" aria-hidden="true" data-reveal>
+    <p class="record-project">Decision Log Service</p>
+    <p class="record-title">Store decisions in MySQL rather than a document store</p>
+    <p class="record-meta"><span class="chip">Accepted</span> Decided by Hailey Liu on Jan 19, 2026</p>
 
-          <p class="field-label">Rationale</p>
-          <p class="field-text">We already run Postgres. A second datastore adds an on call burden we cannot staff yet.</p>
-
-          <div class="record-foot">
-            <span class="avatars"><span class="av av-a">JN</span><span class="av av-b">AL</span><span class="av av-c">HL</span></span>
-            <span class="supersedes">Replaces decision 12</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="problem">
-    <div class="section-head">
-      <p class="eyebrow">Why</p>
-      <h2 class="section-title">Where the reasoning goes</h2>
-    </div>
-
-    <div class="cols">
-      <div>
-        <h3>The record is incomplete</h3>
-        <p>
-          A decision typically leaves behind a single line of notes, a merged pull request,
-          or a message in a thread that is difficult to locate later. The outcome is
-          documented. The tradeoffs, the rejected alternatives, and the constraint that
-          drove the choice are not.
-        </p>
-      </div>
-      <div>
-        <h3>The context leaves with the decision maker</h3>
-        <p>
-          When the person responsible for a decision changes teams or leaves the
-          organization, the reasoning behind it goes unrecorded. What remains is a system
-          no one can fully account for, and a settled debate the team is obliged to repeat
-          before anyone is willing to change it.
-        </p>
-      </div>
-    </div>
-
-    <div class="compare">
-      <div class="compare-panel compare-before">
-        <p class="compare-label">What usually survives</p>
-        <div class="scrap">
-          <p class="scrap-line">Switched sessions to postgres</p>
-          <p class="scrap-meta">merged 3 weeks ago</p>
-        </div>
-        <p class="compare-note">One line. No alternatives, no constraints, no names.</p>
-      </div>
-      <div class="compare-panel compare-after">
-        <p class="compare-label">What MindMerge keeps</p>
-        <dl class="kept">
-          <div><dt>Context</dt><dd>Sessions lost on deploy</dd></div>
-          <div><dt>Options</dt><dd>Redis, Postgres, sticky sessions</dd></div>
-          <div><dt>Chosen</dt><dd>Postgres table</dd></div>
-          <div><dt>Rationale</dt><dd>No staff for a second datastore</dd></div>
-          <div><dt>Decided by</dt><dd>Three people, on a known date</dd></div>
-          <div><dt>History</dt><dd>Replaces decision 12</dd></div>
-        </dl>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section-tint" id="how">
-    <div class="section-head">
-      <p class="eyebrow">How it works</p>
-      <h2 class="section-title">Four habits, one searchable record</h2>
-    </div>
-    <ol class="steps">
-      <li>
-        <span class="step-num">1</span>
-        <h3>Record the decision while it is fresh</h3>
-        <p>Title, context, the options on the table, the one you chose, and why. Each goes in its own structured field.</p>
-      </li>
-      <li>
-        <span class="step-num">2</span>
-        <h3>Keep the alternatives</h3>
-        <p>Rejected options are stored alongside the chosen one, so a later reader can see what was already considered and ruled out.</p>
-      </li>
-      <li>
-        <span class="step-num">3</span>
-        <h3>Supersede instead of deleting</h3>
-        <p>When a decision changes, the new one links back to the old. The history stays intact and reads as a timeline.</p>
-      </li>
-      <li>
-        <span class="step-num">4</span>
-        <h3>Search when the question comes up</h3>
-        <p>Filter by project, tag, or person, and search the reasoning itself. "Why are we doing it this way" becomes a quick query.</p>
-      </li>
-    </ol>
-  </section>
-
-  <section class="section" id="demo">
-    <div class="section-head">
-      <p class="eyebrow">Demo</p>
-      <h2 class="section-title">See it in use</h2>
-    </div>
-    <figure class="demo">
-      <%-- Replace the contents of .demo-screen with a video embed (iframe or <video>) when the walkthrough is recorded. --%>
-      <div class="demo-frame" id="demoFrame">
-        <div class="demo-chrome" aria-hidden="true">
-          <span class="chrome-dot"></span><span class="chrome-dot"></span><span class="chrome-dot"></span>
-          <span class="chrome-url">mindmerge / decisions</span>
-        </div>
-        <div class="demo-screen" aria-label="Product demo placeholder">
-          <div class="demo-skel" aria-hidden="true">
-            <div class="demo-side">
-              <div class="skeleton skeleton-line w-80"></div>
-              <div class="skeleton skeleton-line w-60"></div>
-              <div class="skeleton skeleton-line w-70"></div>
-              <div class="skeleton skeleton-line w-45"></div>
-            </div>
-            <div class="demo-main">
-              <div class="skeleton skeleton-block"></div>
-              <div class="skeleton skeleton-line w-90"></div>
-              <div class="skeleton skeleton-line w-75"></div>
-              <div class="skeleton skeleton-block short"></div>
-              <div class="skeleton skeleton-line w-85"></div>
-            </div>
-          </div>
-          <div class="demo-overlay">
-            <span class="play" aria-hidden="true"></span>
-            <p class="demo-note">Walkthrough video coming soon</p>
-          </div>
-        </div>
-      </div>
-      <figcaption>Logging a decision, searching past decisions, and replacing one that changed.</figcaption>
-    </figure>
-  </section>
-
-  <section class="section section-tint" id="decisions">
-    <div class="section-head">
-      <p class="eyebrow">Live data (This section will be removed for production, only kept for testing purposes)</p>
-      <h2 class="section-title">Recent decisions</h2>
-      <p class="section-note">Loaded from the database when this page opens.</p>
-    </div>
-
-    <ul class="decision-list" id="decisionList" aria-busy="true" aria-live="polite">
-      <li class="decision is-skeleton" aria-hidden="true">
-        <div class="skeleton skeleton-line w-70 tall"></div>
-        <div class="skeleton skeleton-chip"></div>
-        <div class="skeleton skeleton-line w-90"></div>
-        <div class="skeleton skeleton-line w-60"></div>
-        <div class="skeleton skeleton-line w-30"></div>
-      </li>
-      <li class="decision is-skeleton" aria-hidden="true">
-        <div class="skeleton skeleton-line w-60 tall"></div>
-        <div class="skeleton skeleton-chip"></div>
-        <div class="skeleton skeleton-line w-85"></div>
-        <div class="skeleton skeleton-line w-70"></div>
-        <div class="skeleton skeleton-line w-25"></div>
-      </li>
-      <li class="decision is-skeleton" aria-hidden="true">
-        <div class="skeleton skeleton-line w-75 tall"></div>
-        <div class="skeleton skeleton-chip"></div>
-        <div class="skeleton skeleton-line w-80"></div>
-        <div class="skeleton skeleton-line w-45"></div>
-        <div class="skeleton skeleton-line w-30"></div>
-      </li>
-      <li class="decision is-skeleton" aria-hidden="true">
-        <div class="skeleton skeleton-line w-60 tall"></div>
-        <div class="skeleton skeleton-chip"></div>
-        <div class="skeleton skeleton-line w-90"></div>
-        <div class="skeleton skeleton-line w-60"></div>
-        <div class="skeleton skeleton-line w-35"></div>
-      </li>
-    </ul>
-
-    <noscript>
-      <p class="section-note">JavaScript is off, so the list below is rendered by the server instead.</p>
-      <ul class="decision-list">
-        <c:forEach var="d" items="${decisions}">
-          <li class="decision">
-            <h3><c:out value="${d.title}"/></h3>
-            <p class="choice">Chose <strong><c:out value="${d.chosenOption}"/></strong></p>
-            <p class="why"><c:out value="${d.rationale}"/></p>
-            <p class="meta"><c:out value="${d.decidedBy}"/>, <c:out value="${d.decidedAt}"/></p>
-          </li>
-        </c:forEach>
+    <div class="record-section">
+      <p class="record-label">Options considered</p>
+      <ul class="record-options">
+        <li class="is-chosen">
+          <span class="option-name">Relational schema in MySQL <span class="option-flag">Picked</span></span>
+          <span class="option-note">Joins across projects, options and tags are handled by the database.</span>
+        </li>
+        <li>
+          <span class="option-name">MongoDB document store</span>
+          <span class="option-note">Flexible shape, but every join moves into application code.</span>
+        </li>
+        <li>
+          <span class="option-name">JSON files in the repository</span>
+          <span class="option-note">Nothing to run, and nothing to query.</span>
+        </li>
       </ul>
-    </noscript>
-  </section>
-
-  <section class="closing">
-    <div class="closing-inner">
-      <h2>Write down the why while you still remember it.</h2>
-      <a class="btn" href="">Start Now</a>
     </div>
-  </section>
 
+    <div class="record-section">
+      <p class="record-label">Why</p>
+      <p class="record-why">
+        Decision records have a fixed shape and are read through their links to projects,
+        options and tags. A relational schema keeps those links in the database.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="principles">
+  <h2 class="display fade" data-reveal>Built for small teams.</h2>
+  <div class="panels" data-reveal>
+    <article class="panel panel-violet">
+      <svg class="panel-art" viewBox="0 0 320 150" aria-hidden="true">
+        <path class="dots dim" d="M20 40 C 120 40, 170 75, 300 75"/>
+        <path class="dots dim" d="M20 110 C 120 110, 170 75, 300 75"/>
+        <path class="dots lit" d="M20 75 H 300"/>
+        <circle class="pulse pulse-sm" cx="300" cy="75" r="5"/>
+        <circle class="node" cx="300" cy="75" r="5"/>
+      </svg>
+      <div class="panel-body">
+        <h3>Keep every option</h3>
+        <p>See what you picked and what you passed on, with the pros and cons of each.</p>
+      </div>
+    </article>
+    <article class="panel panel-navy">
+      <svg class="panel-art" viewBox="0 0 320 150" aria-hidden="true">
+        <circle class="ring dim old" cx="80" cy="75" r="26"/>
+        <path class="dots lit" d="M112 75 C 150 35, 185 35, 218 62"/>
+        <path class="arrow" pathLength="1" d="M207 60 219 63 214 52"/>
+        <circle class="pulse pulse-lg" cx="250" cy="75" r="26"/>
+        <circle class="node node-lg" cx="250" cy="75" r="26"/>
+      </svg>
+      <div class="panel-body">
+        <h3>Change your mind safely</h3>
+        <p>Made a new call? Link it to the old one, and the history stays intact.</p>
+      </div>
+    </article>
+    <article class="panel panel-umber">
+      <svg class="panel-art" viewBox="0 0 320 150" aria-hidden="true">
+        <circle class="ring spin" cx="160" cy="75" r="44"/>
+        <path class="check" pathLength="1" d="M140 76 154 90 182 60"/>
+      </svg>
+      <div class="panel-body">
+        <h3>Get a quick sign-off</h3>
+        <p>Your team lead approves a decision, so everyone knows it's final.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="statement" data-reveal>
+  <p>Someone will ask, "Why did we do it this way?"</p>
+  <p>Now you'll have the answer.</p>
+</section>
+
+<section class="closing">
+  <h2 class="display">Start keeping track of your team's decisions.</h2>
+  <div class="closing-actions">
+    <a class="pill pill-glow pill-lg" href="${pageContext.request.contextPath}/register">Get started</a>
+    <a class="pill pill-ghost pill-lg" href="${pageContext.request.contextPath}/login">Log in</a>
+  </div>
+</section>
 </main>
 
 <footer class="site-footer">
-  <div class="foot-grid">
-    <div>
-      <p class="foot-mark wordmark">MindMerge</p>
-      <p class="foot-line">A student project for CS157A at San José State University.</p>
-      <p class="foot-line">Team 4: Jason Nguyen, Andrew Khoi Luu, Hailey Liu</p>
-    </div>
-    <div>
-      <p class="foot-head">Legal</p>
-      <p class="foot-line"><a href="${pageContext.request.contextPath}/terms.jsp">Terms of Service</a></p>
-      <p class="foot-line"><a href="${pageContext.request.contextPath}/privacy.jsp">Privacy Policy</a></p>
-    </div>
-    <div>
-      <p class="foot-head">Status</p>
-      <p class="foot-line status">
-        Database:
-        <c:choose>
-          <c:when test="${dbStatus eq 'connected'}"><span class="ok">Connected</span></c:when>
-          <c:otherwise><span class="bad"><c:out value="${dbStatus}"/></span></c:otherwise>
-        </c:choose>
-      </p>
-      <p class="foot-line status">Server time: <%= new java.util.Date() %></p>
-    </div>
+  <div class="footer-brand">
+    <a class="brand" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
+    <p>Decision tracking for small teams. A CS157A project at San José State University.</p>
+  </div>
+  <div>
+    <h2>Product</h2>
+    <a href="${pageContext.request.contextPath}/login">Log in</a>
+    <a href="${pageContext.request.contextPath}/register">Get started</a>
+    <a class="footer-github" href="https://github.com/json-ngu/CS157A-4" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <div>
+    <h2>Team 4</h2>
+    <p>Jason Nguyen</p>
+    <p>Andrew Khoi Luu</p>
+    <p>Hailey Liu</p>
   </div>
 </footer>
 
-<script src="${pageContext.request.contextPath}/js/theme.js"></script>
+<script src="${pageContext.request.contextPath}/js/hero.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
-<script src="${pageContext.request.contextPath}/js/motion.js"></script>
-<script src="${pageContext.request.contextPath}/js/decisions.js"></script>
+<script src="${pageContext.request.contextPath}/js/smooth.js"></script>
+<script src="${pageContext.request.contextPath}/js/scroll.js"></script>
+</c:otherwise>
+</c:choose>
 </body>
 </html>

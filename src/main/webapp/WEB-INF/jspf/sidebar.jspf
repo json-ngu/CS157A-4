@@ -1,0 +1,11 @@
+<aside class="sidebar">
+  <a class="brand" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
+  <nav class="side-nav" aria-label="Main">
+    <a class="is-active" aria-current="page" href="${pageContext.request.contextPath}/home">Decisions</a>
+  </nav>
+  <div class="account">
+    <p class="account-name"><c:out value="${sessionScope.user.displayName}"/></p>
+    <a class="pill pill-ghost pill-sm" href="${pageContext.request.contextPath}/logout">Log out</a>
+    <p class="credit">CS157A Team 4, SJSU</p>
+  </div>
+</aside>
