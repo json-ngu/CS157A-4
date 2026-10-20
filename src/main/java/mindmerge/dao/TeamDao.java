@@ -19,7 +19,7 @@ public class TeamDao {
         "SELECT team_id, name FROM team WHERE company_id = ? ORDER BY name";
 
     private static final String FIND_TEAM_MEMBERS =
-        "SELECT tm.team_id, u.user_id, u.full_name, u.email, tm.team_role AS role, tm.joined_at " +
+        "SELECT tm.team_id, u.user_id, u.full_name, u.email, u.status, tm.team_role AS role, tm.joined_at " +
         "FROM team_member tm " +
         "JOIN team t ON t.team_id = tm.team_id " +
         "JOIN `user` u ON u.user_id = tm.user_id " +
