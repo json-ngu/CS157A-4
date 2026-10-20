@@ -8,8 +8,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Locale;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
@@ -19,6 +21,12 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("user") != null) {
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return;
+        }
         showForm(request, response, null);
     }
 
@@ -26,22 +34,33 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String username = trim(request.getParameter("username"));
+        String email = trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
         String password = request.getParameter("password");
+        request.setAttribute("email", email);
 
-        if (password == null || password.trim().isEmpty()) {
-            showForm(request, response, "Please enter your password.");
+        if (email.isEmpty() || password == null || password.isEmpty()) {
+            showForm(request, response, "Please enter your email and password.");
             return;
         }
 
         try {
-            User user = userDao.authenticate(username, password);
+            User user = userDao.authenticate(email, password);
             if (user == null) {
-                showForm(request, response, "Invalid username or password.");
+                showForm(request, response, "Invalid email or password.");
                 return;
             }
+            if (!user.isActive()) {
+                showForm(request, response, "This account isn't active. Ask your company admin for access.");
+                return;
+            }
+
+            // Start a fresh session on login so an earlier session id can't be reused.
+            HttpSession old = request.getSession(false);
+            if (old != null) {
+                old.invalidate();
+            }
             request.getSession(true).setAttribute("user", user);
-            response.sendRedirect(request.getContextPath() + "/home");
+            response.sendRedirect(request.getContextPath() + "/dashboard");
         } catch (SQLException e) {
             getServletContext().log("Login failed", e);
             showForm(request, response, "The database is unavailable.");

@@ -1,0 +1,62 @@
+package mindmerge.servlet;
+
+import mindmerge.dao.DashboardDao;
+import mindmerge.dao.InviteDao;
+import mindmerge.dao.UserDao;
+import mindmerge.model.User;
+import mindmerge.util.Auth;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.time.LocalTime;
+
+@WebServlet("/dashboard")
+public class DashboardServlet extends HttpServlet {
+
+    private final DashboardDao dashboardDao = new DashboardDao();
+    private final InviteDao inviteDao = new InviteDao();
+    private final UserDao userDao = new UserDao();
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User user = Auth.requireUser(request, response);
+        if (user == null) return;
+        int userId = user.getUserId();
+
+        String query = request.getParameter("q");
+        query = query == null ? "" : query.trim();
+        boolean mineOnly = "mine".equals(request.getParameter("view"));
+
+        Auth.consumeFlash(request);
+        request.setAttribute("activeNav", "dashboard");
+        request.setAttribute("q", query);
+        request.setAttribute("view", mineOnly ? "mine" : "team");
+        request.setAttribute("greeting", greeting(LocalTime.now()));
+
+        try {
+            request.setAttribute("viewer", userDao.findViewer(userId));
+            request.setAttribute("invites", inviteDao.findPendingForUser(userId));
+            request.setAttribute("review", dashboardDao.findNeedsReview(userId));
+            request.setAttribute("feed", dashboardDao.findFeed(userId, mineOnly, query));
+            request.setAttribute("projects", dashboardDao.findProjects(userId));
+        } catch (SQLException e) {
+            getServletContext().log("Could not load the dashboard", e);
+            request.setAttribute("error", "Could not load the dashboard. Check that the database is running.");
+        }
+
+        request.getRequestDispatcher("/WEB-INF/dashboard.jsp").forward(request, response);
+    }
+
+    private String greeting(LocalTime now) {
+        if (now.getHour() < 12) return "Good morning";
+        if (now.getHour() < 18) return "Good afternoon";
+        return "Good evening";
+    }
+}

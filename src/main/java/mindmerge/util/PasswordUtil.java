@@ -8,41 +8,61 @@ import java.util.Base64;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+/**
+ * PBKDF2-HMAC-SHA256 password hashing, stored in the user table's two columns:
+ *   password_hash = "pbkdf2$<iterations>$<base64 hash>"
+ *   salt          = "<base64 salt>"   (16 random bytes per user)
+ * The iteration count travels with the hash, so it can be raised later without breaking old passwords.
+ */
 public final class PasswordUtil {
 
+    private static final String SCHEME = "pbkdf2";
     private static final int ITERATIONS = 210_000;
     private static final int SALT_BYTES = 16;
     private static final int KEY_BITS = 256;
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    /** A freshly hashed password: both values go into the user row. */
+    public static final class Hashed {
+        public final String hash;
+        public final String salt;
+
+        private Hashed(String hash, String salt) {
+            this.hash = hash;
+            this.salt = salt;
+        }
+    }
 
     private PasswordUtil() {
     }
 
-    public static String hash(String password) {
+    public static Hashed hash(String password) {
         byte[] salt = new byte[SALT_BYTES];
-        new SecureRandom().nextBytes(salt);
+        RANDOM.nextBytes(salt);
 
         byte[] hash = derive(password, salt, ITERATIONS);
 
-        return ITERATIONS + ":"
-                + Base64.getEncoder().encodeToString(salt) + ":"
-                + Base64.getEncoder().encodeToString(hash);
+        return new Hashed(
+                SCHEME + "$" + ITERATIONS + "$" + Base64.getEncoder().encodeToString(hash),
+                Base64.getEncoder().encodeToString(salt));
     }
 
-    public static boolean matches(String password, String storedValue) {
-        if (storedValue == null) {
+    /** False for anything that isn't a hash this class made, such as the seed data's placeholders. */
+    public static boolean matches(String password, String storedHash, String storedSalt) {
+        if (password == null || storedHash == null || storedSalt == null) {
             return false;
         }
 
-        String[] parts = storedValue.split(":", 3);
+        String[] parts = storedHash.split("\\$");
 
-        if (parts.length != 3) {
+        if (parts.length != 3 || !SCHEME.equals(parts[0])) {
             return false;
         }
 
         try {
-            int iterations = Integer.parseInt(parts[0]);
-            byte[] salt = Base64.getDecoder().decode(parts[1]);
+            int iterations = Integer.parseInt(parts[1]);
             byte[] expected = Base64.getDecoder().decode(parts[2]);
+            byte[] salt = Base64.getDecoder().decode(storedSalt);
             byte[] actual = derive(password, salt, iterations);
 
             return MessageDigest.isEqual(expected, actual);

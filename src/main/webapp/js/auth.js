@@ -1,4 +1,4 @@
-// Login and register: show/hide password buttons, and the username rule hint.
+// Login and register: show/hide password buttons, and the password length hint.
 (function () {
   "use strict";
 
@@ -16,33 +16,33 @@
     });
   });
 
-  // Same rule as RegisterServlet. The hint appears only when the username breaks it.
-  var RULE = /^[A-Za-z0-9_]{3,50}$/;
-  var hint = document.getElementById("usernameHint");
-  var username = document.getElementById("username");
-  if (!hint || !username) return;
+  // Same minimum as RegisterServlet. The hint appears only when the password is too short.
+  var MIN_LENGTH = 8;
+  var hint = document.getElementById("passwordHint");
+  var password = document.getElementById("password");
+  if (!hint || !password) return;
 
   var touched = false;
 
   function check() {
-    var value = username.value.trim();
-    var invalid = value !== "" && !RULE.test(value);
+    var value = password.value;
+    var invalid = value !== "" && value.length < MIN_LENGTH;
     hint.hidden = !invalid;
     if (invalid) {
-      username.setAttribute("aria-invalid", "true");
-      username.setAttribute("aria-describedby", hint.id);
+      password.setAttribute("aria-invalid", "true");
+      password.setAttribute("aria-describedby", hint.id);
     } else {
-      username.removeAttribute("aria-invalid");
-      username.removeAttribute("aria-describedby");
+      password.removeAttribute("aria-invalid");
+      password.removeAttribute("aria-describedby");
     }
   }
 
-  // Wait for the first blur so a single typed letter isn't flagged, then recheck while typing.
-  username.addEventListener("blur", function () {
+  // Wait for the first blur so a half-typed password isn't flagged, then recheck while typing.
+  password.addEventListener("blur", function () {
     touched = true;
     check();
   });
-  username.addEventListener("input", function () {
+  password.addEventListener("input", function () {
     if (touched) check();
   });
 })();

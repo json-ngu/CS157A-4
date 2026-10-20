@@ -19,8 +19,8 @@
   </c:if>
 
   <form class="form" method="post" action="${pageContext.request.contextPath}/login">
-    <label for="username">Username</label>
-    <input id="username" name="username" type="text" required autocomplete="username">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" required autocomplete="username" maxlength="180" value="<c:out value='${email}'/>">
 
     <label for="password">Password</label>
     <div class="password-field">

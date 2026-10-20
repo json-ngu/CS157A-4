@@ -1,65 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <c:set var="pageTitle" value="MindMerge"/>
 <%@ include file="/WEB-INF/jspf/head.jspf" %>
 <body>
-<c:choose>
-<c:when test="${not empty sessionScope.user}">
-<%-- Logged in: the decision list. This becomes the dashboard. --%>
-<div class="app">
-  <%@ include file="/WEB-INF/jspf/sidebar.jspf" %>
-
-  <main class="app-main">
-    <header class="page-head">
-      <h1>Decisions</h1>
-      <c:if test="${empty error}">
-        <p class="page-count">
-          <c:out value="${fn:length(decisions)}"/>
-          <c:out value="${fn:length(decisions) == 1 ? 'decision' : 'decisions'}"/>
-        </p>
-      </c:if>
-    </header>
-
-    <c:choose>
-      <c:when test="${not empty error}">
-        <p class="alert" role="alert"><c:out value="${error}"/></p>
-      </c:when>
-      <c:when test="${empty decisions}">
-        <p class="empty">No decisions recorded yet.</p>
-      </c:when>
-      <c:otherwise>
-        <table class="decisions">
-          <thead>
-            <tr>
-              <th scope="col">Decision</th>
-              <th scope="col">Chose</th>
-              <th scope="col">Decided by</th>
-              <th scope="col">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            <c:forEach var="d" items="${decisions}">
-              <tr>
-                <td class="decision-cell">
-                  <p class="decision-title"><c:out value="${d.title}"/></p>
-                  <p class="decision-why"><c:out value="${d.rationale}"/></p>
-                </td>
-                <td class="chose" data-label="Chose"><c:out value="${d.chosenOption}"/></td>
-                <td data-label="Decided by"><c:out value="${d.decidedBy}"/></td>
-                <td class="date" data-label="Date"><c:out value="${d.decidedAt}"/></td>
-              </tr>
-            </c:forEach>
-          </tbody>
-        </table>
-      </c:otherwise>
-    </c:choose>
-  </main>
-</div>
-</c:when>
-
-<c:otherwise>
-<%-- Logged out: the landing page. --%>
+<%-- The public landing page. --%>
 <main>
 <div class="hero">
   <div class="hero-light" aria-hidden="true"><div class="hero-beam"></div></div>
@@ -214,7 +158,5 @@
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/smooth.js"></script>
 <script src="${pageContext.request.contextPath}/js/scroll.js"></script>
-</c:otherwise>
-</c:choose>
 </body>
 </html>

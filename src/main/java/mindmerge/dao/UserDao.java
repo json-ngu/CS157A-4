@@ -1,6 +1,7 @@
 package mindmerge.dao;
 
 import mindmerge.model.User;
+import mindmerge.model.Viewer;
 import mindmerge.util.DbUtil;
 import mindmerge.util.PasswordUtil;
 
@@ -12,32 +13,56 @@ import java.sql.SQLException;
 public class UserDao {
 
     private static final String INSERT =
-        "INSERT INTO users (username, display_name, password_hash, role) " +
-        "VALUES (?, ?, ?, 'TEAM_MEMBER')";
+        "INSERT INTO `user` (full_name, email, password_hash, salt, status) " +
+        "VALUES (?, ?, ?, ?, 'active')";
 
-    private static final String FIND_BY_USERNAME =
-        "SELECT user_id, username, display_name, password_hash, role " +
-        "FROM users WHERE username = ?";
+    private static final String FIND_BY_EMAIL =
+        "SELECT user_id, full_name, email, password_hash, salt, status " +
+        "FROM `user` WHERE email = ?";
 
-    public void createUser(String username, String displayName, String password) throws SQLException {
+    // Name, current companies and teams, admin flag and invite setting for page headers and the sidebar.
+    private static final String FIND_VIEWER =
+        "SELECT u.user_id, u.full_name, u.allow_invites, " +
+        "  (SELECT GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') " +
+        "     FROM employee e JOIN company c ON c.company_id = e.company_id " +
+        "    WHERE e.user_id = u.user_id AND e.left_at IS NULL) AS companies, " +
+        "  (SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') " +
+        "     FROM team_member tm JOIN team t ON t.team_id = tm.team_id " +
+        "    WHERE tm.user_id = u.user_id AND tm.left_at IS NULL) AS teams, " +
+        "  EXISTS (SELECT 1 FROM employee e " +
+        "           WHERE e.user_id = u.user_id AND e.left_at IS NULL " +
+        "             AND e.company_role IN ('owner', 'admin')) AS is_admin " +
+        "FROM `user` u WHERE u.user_id = ?";
+
+    private static final String SET_ALLOW_INVITES =
+        "UPDATE `user` SET allow_invites = ? WHERE user_id = ?";
+
+    /** Throws SQLException with error code 1062 when the email is already registered. */
+    public void createUser(String fullName, String email, String password) throws SQLException {
+        PasswordUtil.Hashed hashed = PasswordUtil.hash(password);
+
         try (Connection conn = DbUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(INSERT)) {
 
-            ps.setString(1, username);
-            ps.setString(2, displayName);
-            ps.setString(3, PasswordUtil.hash(password));
+            ps.setString(1, fullName);
+            ps.setString(2, email);
+            ps.setString(3, hashed.hash);
+            ps.setString(4, hashed.salt);
             ps.executeUpdate();
         }
     }
 
-    /** Returns the matching user, or null if the username is unknown or the password is wrong. */
-    public User authenticate(String username, String password) throws SQLException {
+    /**
+     * Returns the user when the email exists and the password is right, otherwise null.
+     * The caller still has to check the account's status.
+     */
+    public User authenticate(String email, String password) throws SQLException {
         try (Connection conn = DbUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(FIND_BY_USERNAME)) {
+             PreparedStatement ps = conn.prepareStatement(FIND_BY_EMAIL)) {
 
-            ps.setString(1, username);
+            ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next() && PasswordUtil.matches(password, rs.getString("password_hash"))) {
+                if (rs.next() && PasswordUtil.matches(password, rs.getString("password_hash"), rs.getString("salt"))) {
                     return mapRow(rs);
                 }
             }
@@ -45,12 +70,41 @@ public class UserDao {
         return null;
     }
 
+    public Viewer findViewer(int userId) throws SQLException {
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(FIND_VIEWER)) {
+
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                Viewer v = new Viewer();
+                v.setUserId(rs.getInt("user_id"));
+                v.setFullName(rs.getString("full_name"));
+                v.setCompanies(rs.getString("companies"));
+                v.setTeams(rs.getString("teams"));
+                v.setAdmin(rs.getBoolean("is_admin"));
+                v.setAllowInvites(rs.getBoolean("allow_invites"));
+                return v;
+            }
+        }
+    }
+
+    public void setAllowInvites(int userId, boolean allow) throws SQLException {
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SET_ALLOW_INVITES)) {
+
+            ps.setBoolean(1, allow);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
     private User mapRow(ResultSet rs) throws SQLException {
         User u = new User();
         u.setUserId(rs.getInt("user_id"));
-        u.setUsername(rs.getString("username"));
-        u.setDisplayName(rs.getString("display_name"));
-        u.setRole(rs.getString("role"));
+        u.setFullName(rs.getString("full_name"));
+        u.setEmail(rs.getString("email"));
+        u.setStatus(rs.getString("status"));
         return u;
     }
 }

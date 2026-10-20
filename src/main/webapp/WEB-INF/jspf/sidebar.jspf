@@ -1,11 +1,44 @@
 <aside class="sidebar">
   <a class="brand" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
+  <%-- Each page sets "activeNav" (dashboard, people, teams, settings) to highlight its link.
+       Placeholders for features teammates will build: to turn one on, replace its
+       <span class="nav-soon">...</span> with a link, e.g.
+       <a href="${pageContext.request.contextPath}/projects">Projects</a>
+       The Admin group only shows when the page sets a "viewer" request attribute whose
+       admin flag is true (company owner or admin). Hiding the links is not access control:
+       each admin page must still check the role in its servlet. --%>
   <nav class="side-nav" aria-label="Main">
-    <a class="is-active" aria-current="page" href="${pageContext.request.contextPath}/home">Decisions</a>
+    <a class="${activeNav eq 'dashboard' ? 'is-active' : ''}" ${activeNav eq 'dashboard' ? 'aria-current="page"' : ''}
+       href="${pageContext.request.contextPath}/dashboard">Dashboard</a>
+    <span class="nav-soon" aria-disabled="true">New decision <span class="soon">Soon</span></span>
+    <span class="nav-soon" aria-disabled="true">Decisions <span class="soon">Soon</span></span>
+    <span class="nav-soon" aria-disabled="true">Projects <span class="soon">Soon</span></span>
+    <span class="nav-soon" aria-disabled="true">Approvals <span class="soon">Soon</span></span>
+
+    <c:if test="${viewer.admin}">
+      <p class="nav-group">Admin</p>
+      <a class="${activeNav eq 'people' ? 'is-active' : ''}" ${activeNav eq 'people' ? 'aria-current="page"' : ''}
+         href="${pageContext.request.contextPath}/people">People</a>
+      <a class="${activeNav eq 'teams' ? 'is-active' : ''}" ${activeNav eq 'teams' ? 'aria-current="page"' : ''}
+         href="${pageContext.request.contextPath}/teams">Teams</a>
+      <span class="nav-soon" aria-disabled="true">Tags <span class="soon">Soon</span></span>
+      <span class="nav-soon" aria-disabled="true">Audit log <span class="soon">Soon</span></span>
+    </c:if>
   </nav>
   <div class="account">
-    <p class="account-name"><c:out value="${sessionScope.user.displayName}"/></p>
-    <a class="pill pill-ghost pill-sm" href="${pageContext.request.contextPath}/logout">Log out</a>
+    <c:choose>
+      <c:when test="${not empty sessionScope.user}">
+        <nav class="side-nav account-nav" aria-label="Account">
+          <a class="${activeNav eq 'settings' ? 'is-active' : ''}" ${activeNav eq 'settings' ? 'aria-current="page"' : ''}
+             href="${pageContext.request.contextPath}/settings">Settings</a>
+        </nav>
+        <p class="account-name"><c:out value="${sessionScope.user.fullName}"/></p>
+        <a class="pill pill-ghost pill-sm" href="${pageContext.request.contextPath}/logout">Log out</a>
+      </c:when>
+      <c:otherwise>
+        <a class="pill pill-ghost pill-sm" href="${pageContext.request.contextPath}/login">Log in</a>
+      </c:otherwise>
+    </c:choose>
     <p class="credit">CS157A Team 4, SJSU</p>
   </div>
 </aside>

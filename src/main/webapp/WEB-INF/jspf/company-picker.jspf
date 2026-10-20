@@ -1,0 +1,12 @@
+<%-- Switch which company a management page shows. Needs "companies", "company" and "pickerAction". --%>
+<c:if test="${fn:length(companies) > 1}">
+  <form class="company-picker" method="get" action="${pageContext.request.contextPath}${pickerAction}">
+    <label for="companyPicker">Company</label>
+    <select id="companyPicker" name="company" class="select" data-autosubmit>
+      <c:forEach var="co" items="${companies}">
+        <option value="${co.companyId}" ${co.companyId == company.companyId ? 'selected' : ''}><c:out value="${co.name}"/></option>
+      </c:forEach>
+    </select>
+    <button class="pill pill-ghost pill-sm" type="submit">Show</button>
+  </form>
+</c:if>

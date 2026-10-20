@@ -1,0 +1,4 @@
+<%-- One-time notice from Auth.flash after a form post (success or error). --%>
+<c:if test="${not empty notice}">
+  <p class="${noticeError ? 'alert' : 'notice'} page-notice" role="${noticeError ? 'alert' : 'status'}"><c:out value="${notice}"/></p>
+</c:if>

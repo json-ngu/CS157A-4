@@ -10,28 +10,27 @@
 <main class="auth-card">
   <a class="brand brand-lg" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
   <h1>Create an account</h1>
-  <p class="auth-note">New accounts start as team members.</p>
 
   <c:if test="${not empty error}">
     <p class="alert" role="alert"><c:out value="${error}"/></p>
   </c:if>
 
   <form class="form" method="post" action="${pageContext.request.contextPath}/register">
-    <label for="displayName">Display name</label>
-    <input id="displayName" name="displayName" type="text" required autocomplete="name">
+    <label for="fullName">Full name</label>
+    <input id="fullName" name="fullName" type="text" required autocomplete="name" maxlength="120" value="<c:out value='${fullName}'/>">
 
-    <label for="username">Username</label>
-    <input id="username" name="username" type="text" required autocomplete="username">
-    <p class="hint hint-error" id="usernameHint" hidden>3 to 50 letters, numbers or underscores.</p>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" required autocomplete="email" maxlength="180" value="<c:out value='${email}'/>">
 
     <label for="password">Password</label>
     <div class="password-field">
-      <input id="password" name="password" type="password" required autocomplete="new-password">
+      <input id="password" name="password" type="password" required autocomplete="new-password" maxlength="128">
       <button class="reveal" type="button" aria-controls="password" aria-label="Show password" hidden>
         <svg class="icon-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
         <svg class="icon-eye-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7c1.9 0 3.5-.5 4.9-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
       </button>
     </div>
+    <p class="hint hint-error" id="passwordHint" hidden>At least 8 characters.</p>
 
     <label for="confirmPassword">Confirm password</label>
     <div class="password-field">
