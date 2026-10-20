@@ -79,7 +79,7 @@ public class PeopleServlet extends HttpServlet {
             String action = String.valueOf(request.getParameter("action"));
             switch (action) {
                 case "invite":
-                    invite(request, user, companyId);
+                    invite(request, user, myRole, companyId);
                     break;
                 case "role":
                     changeRole(request, myRole, companyId);
@@ -101,12 +101,14 @@ public class PeopleServlet extends HttpServlet {
         response.sendRedirect(back);
     }
 
-    private void invite(HttpServletRequest request, User user, int companyId) throws SQLException {
+    private void invite(HttpServletRequest request, User user, String myRole, int companyId) throws SQLException {
         String email = trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
         String role = "admin".equals(request.getParameter("role")) ? "admin" : "member";
 
         if (email.isEmpty()) {
             Auth.flash(request, "Enter an email to invite.", true);
+        } else if ("admin".equals(role) && !"owner".equals(myRole)) {
+            Auth.flash(request, "Only an owner can invite someone as an admin.", true);
         } else if (inviteDao.invite(companyId, email, role, user.getUserId())) {
             Auth.flash(request, "Invite sent to " + email + ". It will appear on their dashboard.", false);
         } else {
@@ -114,17 +116,21 @@ public class PeopleServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Company roles are owner-only: admins can't promote anyone to admin, demote other admins,
+     * or change their own role. (Admins still set team roles on the Teams page.)
+     */
     private void changeRole(HttpServletRequest request, String myRole, int companyId) throws SQLException {
         int target = Auth.intParam(request, "user");
         String newRole = request.getParameter("role");
         String currentRole = companyDao.findRole(companyId, target);
 
-        if (currentRole == null || !isCompanyRole(newRole)) {
+        if (!"owner".equals(myRole)) {
+            Auth.flash(request, "Only an owner can change company roles.", true);
+        } else if (currentRole == null || !isCompanyRole(newRole)) {
             Auth.flash(request, "That person isn't a member of this company.", true);
         } else if (newRole.equals(currentRole)) {
             Auth.flash(request, "No change.", false);
-        } else if (("owner".equals(newRole) || "owner".equals(currentRole)) && !"owner".equals(myRole)) {
-            Auth.flash(request, "Only an owner can make or change an owner.", true);
         } else if ("owner".equals(currentRole) && companyDao.countOwners(companyId) <= 1) {
             Auth.flash(request, "A company needs at least one owner. Make someone else an owner first.", true);
         } else {
@@ -139,8 +145,9 @@ public class PeopleServlet extends HttpServlet {
 
         if (targetRole == null) {
             Auth.flash(request, "That person isn't a member of this company.", true);
-        } else if ("owner".equals(targetRole) && !"owner".equals(myRole)) {
-            Auth.flash(request, "Only an owner can remove an owner.", true);
+        } else if (!"owner".equals(myRole) && !"member".equals(targetRole) && target != user.getUserId()) {
+            // Removing an admin or owner is owner-only, like changing their role; anyone may leave.
+            Auth.flash(request, "Only an owner can remove an admin or owner.", true);
         } else if ("owner".equals(targetRole) && companyDao.countOwners(companyId) <= 1) {
             Auth.flash(request, "A company needs at least one owner. Make someone else an owner first.", true);
         } else {

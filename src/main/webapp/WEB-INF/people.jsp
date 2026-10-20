@@ -33,11 +33,20 @@
           <input type="hidden" name="action" value="invite">
           <label class="visually-hidden" for="inviteEmail">Email</label>
           <input id="inviteEmail" class="input" name="email" type="email" required maxlength="180" placeholder="name@example.com">
-          <label class="visually-hidden" for="inviteRole">Role</label>
-          <select id="inviteRole" class="select" name="role">
-            <option value="member">Member</option>
-            <option value="admin">Admin</option>
-          </select>
+          <%-- Only owners can invite admins; admins invite members. --%>
+          <c:choose>
+            <c:when test="${iAmOwner}">
+              <label class="visually-hidden" for="inviteRole">Role</label>
+              <select id="inviteRole" class="select" name="role">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+            </c:when>
+            <c:otherwise>
+              <input type="hidden" name="role" value="member">
+              <span class="muted">as a member</span>
+            </c:otherwise>
+          </c:choose>
           <button class="pill pill-glow" type="submit">Send invite</button>
         </form>
 
@@ -64,6 +73,9 @@
 
       <section class="box" aria-labelledby="membersHeading">
         <h2 id="membersHeading">Members <span class="muted"><c:out value="${fn:length(members)}"/></span></h2>
+        <c:if test="${not iAmOwner}">
+          <p class="panel-note">Only owners can change company roles. You can set team roles on the Teams page.</p>
+        </c:if>
         <table class="table">
           <thead>
             <tr>
@@ -75,8 +87,9 @@
           </thead>
           <tbody>
             <c:forEach var="m" items="${members}">
-              <%-- Admins can't change or remove owners; only owners can. --%>
-              <c:set var="canEdit" value="${iAmOwner or m.role ne 'owner'}"/>
+              <%-- Company roles are owner-only. Admins may remove members, and anyone may leave. --%>
+              <c:set var="isMe" value="${m.userId == sessionScope.user.userId}"/>
+              <c:set var="canRemove" value="${iAmOwner or m.role eq 'member' or isMe}"/>
               <tr>
                 <td data-label="Name">
                   <p class="row-title"><c:out value="${m.fullName}"/><c:if test="${m.userId == sessionScope.user.userId}"> <span class="muted">(you)</span></c:if></p>
@@ -84,14 +97,14 @@
                 </td>
                 <td data-label="Role">
                   <c:choose>
-                    <c:when test="${canEdit}">
+                    <c:when test="${iAmOwner}">
                       <form class="role-form" method="post" action="${pageContext.request.contextPath}/people">
                         <input type="hidden" name="company" value="${company.companyId}">
                         <input type="hidden" name="action" value="role">
                         <input type="hidden" name="user" value="${m.userId}">
                         <label class="visually-hidden" for="role${m.userId}">Role for <c:out value="${m.fullName}"/></label>
                         <select id="role${m.userId}" class="select select-sm" name="role" data-autosubmit>
-                          <c:if test="${iAmOwner}"><option value="owner" ${m.role eq 'owner' ? 'selected' : ''}>Owner</option></c:if>
+                          <option value="owner" ${m.role eq 'owner' ? 'selected' : ''}>Owner</option>
                           <option value="admin" ${m.role eq 'admin' ? 'selected' : ''}>Admin</option>
                           <option value="member" ${m.role eq 'member' ? 'selected' : ''}>Member</option>
                         </select>
@@ -103,13 +116,13 @@
                 </td>
                 <td data-label="Joined" class="muted"><c:out value="${m.joinedDate}"/></td>
                 <td class="actions-cell">
-                  <c:if test="${canEdit}">
+                  <c:if test="${canRemove}">
                     <form method="post" action="${pageContext.request.contextPath}/people"
                           data-confirm="Remove ${fn:escapeXml(m.fullName)} from ${fn:escapeXml(company.name)}? Their decisions and comments are kept.">
                       <input type="hidden" name="company" value="${company.companyId}">
                       <input type="hidden" name="action" value="remove">
                       <input type="hidden" name="user" value="${m.userId}">
-                      <button class="link-danger" type="submit"><c:out value="${m.userId == sessionScope.user.userId ? 'Leave' : 'Remove'}"/></button>
+                      <button class="link-danger" type="submit"><c:out value="${isMe ? 'Leave' : 'Remove'}"/></button>
                     </form>
                   </c:if>
                 </td>

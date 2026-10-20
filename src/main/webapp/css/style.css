@@ -1891,8 +1891,16 @@ body.auth .grain {
   min-width: 0;
 }
 
+/* Custom chevron so the arrow sits 12px from the right edge, matching the 12px text inset. */
 .select {
-  padding-right: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%239b97a6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+  cursor: pointer;
 }
 
 .select option {
