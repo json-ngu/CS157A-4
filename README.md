@@ -1,12 +1,5 @@
-**NOTE to Professor Wu:** Until the end of the week of September 22, 2026, it will show me (Jason Nguyen) as the only contributor for the GitHub repository. I, the team lead, wanted to be the one responsible for creating the main structure as I believe it is important to maintain consistency in the starting stages. This means a couple things:
-
-- This allows my team members (Andrew and Hailey), to make sure they will have the project set up exactly the way it should be set up. The earlier we can be on the same page, the fewer consistencies and troubleshooting we will encounter later on during the course of the project.
-- This is also why I kept the website initially barebones (as submitted on Canvas) since it allowed my team members to test as well as troubleshoot for any problems (on either end) before we work on the actual landing page.
-
-Both my team members have made great contributions to the starting stages of the project especially during the proposal document writing process. They've provided awesome suggestions and ideas for the project so team contribution isn't a worry.
-
 # MindMerge
-### Written by Jason Nguyen (Updated as of September 22, 2026)
+### Written by Jason Nguyen (Updated as of October 20, 2026)
 
 **What is MindMerge?**
 
@@ -18,6 +11,39 @@ it this way?" can be answered months later, even after the people involved have 
 
 This document covers how to set the project up and run it on macOS or Windows. The application runs locally. Public hosting may be revisited later, since a Tomcat deployment requires a Java-capable host rather than a static or serverless platform.
 
+## Features
+
+**Working now**
+
+- **Accounts**: sign up with full name, email and password; log in and out. Passwords are
+  stored as salted PBKDF2-SHA256 hashes, and sessions expire after 30 minutes idle.
+- **Dashboard**: decisions from your teams' projects with status, chosen option, author and
+  color-coded tags; a "Needs your review" list for leads and approvers; your projects; a
+  Team / Mine toggle; and search that updates as you type.
+- **Companies**: create a company (you become its owner) and switch invites on or off in Settings.
+- **People** (owners and admins): invite existing users by email, change roles, and remove
+  members. Invites appear on the invited person's dashboard to join or decline.
+- **Teams** (owners and admins): create teams and add members as lead, approver or member.
+- **History is kept**: removing someone only ends their membership. Their decisions, comments
+  and past memberships stay in the database.
+
+**Coming next** (shown as "Soon" in the sidebar): recording new decisions, the decisions list,
+projects, approvals, tags and the audit log.
+
+## Demo accounts
+
+After loading `sql/schema.sql` (Setup step 2), these accounts can log in:
+
+| Name | Email | Password |
+|---|---|---|
+| Jason Nguyen | jason.nguyen06@sjsu.edu | `jasonnguyen` |
+| Andrew Khoi Luu | andrewkhoi.luu@sjsu.edu | `andrewluu` |
+| Hailey Liu | hailey.liu01@sjsu.edu | `haileyliu` |
+
+All three belong to the MindMerge company. Hailey is its owner and Jason is an admin, so both
+see the Admin section (People, Teams); Andrew is a member. These are demo passwords for local
+use only. The other seeded users have placeholder passwords and can't log in.
+
 ## Architecture
 
 | Tier | Technology |
@@ -26,13 +52,16 @@ This document covers how to set the project up and run it on macOS or Windows. T
 | Application | Apache Tomcat 9; Java Servlets, JDBC |
 | Data | MySQL |
 
-A request for the home page travels:
+Every page is rendered on the server. A request for the dashboard travels:
 
 ```
-browser → index.jsp (redirect) → HomeServlet → DecisionDao → JDBC → MySQL
-                                       ↓
-                             WEB-INF/home.jsp → HTML → browser
+browser → /dashboard → DashboardServlet → DashboardDao → JDBC → MySQL
+                              ↓
+                    WEB-INF/dashboard.jsp → HTML → browser
 ```
+
+The landing page (`/home`) needs no database. Signed-in pages (`/dashboard`, `/people`,
+`/teams`, `/settings`) redirect to `/login` when there is no session.
 
 ## Requirements
 
@@ -78,7 +107,11 @@ cd mindmerge
 
 ### 2. Create the database
 
-This creates the `mindmerge_db` database, the `decision` table, and seed rows.
+This creates the `mindmerge_db` database with all of its tables and the team's seed data
+(companies, users, teams, projects, decisions, options, tags, comments and audit log).
+
+> **It drops and recreates `mindmerge_db` every time.** Re-run it after pulling changes to
+> `sql/schema.sql`. Anything you created locally (accounts, companies) is reset.
 
 **macOS / Linux**
 
@@ -104,11 +137,11 @@ Get-Content sql\schema.sql | mysql -u root -p
 Confirm it worked:
 
 ```bash
-mysql -u root -p -e "SELECT * FROM mindmerge_db.decision;"
+mysql -u root -p -e "SELECT COUNT(*) FROM mindmerge_db.decision;"
 ```
 
-You should see at least one row. In Workbench, refresh the Schemas panel
-(right-click → Refresh All) and expand `mindmerge_db` → Tables → `decision`.
+You should see `16`. In Workbench, refresh the Schemas panel (right-click → Refresh All)
+and expand `mindmerge_db` → Tables.
 
 ### 3. Add your database credentials
 
@@ -190,8 +223,8 @@ Leave that window open; closing it stops Tomcat.
 
 **http://localhost:8080/mindmerge/**
 
-You should see the decision list and a System status card reading
-`Database: connected`.
+You should see the landing page. Click **Log in** and use one of the
+[demo accounts](#demo-accounts), or click **Get started** to create your own.
 
 **To stop the server:**
 
@@ -211,6 +244,9 @@ that works for `mysql -u root -p`.
 
 **`Unknown database 'mindmerge_db'`**
 Step 2 hasn't run successfully yet.
+
+**A demo account says "Invalid email or password", or the log shows `Unknown column` / `Table ... doesn't exist`**
+Your database is from an older version of `sql/schema.sql`. Re-run step 2, then rebuild and redeploy.
 
 **`No suitable driver found for jdbc:mysql://...`**
 Tomcat is serving an outdated copy of the app. Stop Tomcat, delete both
@@ -242,20 +278,30 @@ MySQL isn't on your PATH. Add it, or use MySQL Workbench for the database steps.
 
 ```
 mindmerge/
-├── pom.xml                      Maven build configuration
-├── db.properties.example        Template for local database credentials
-├── sql/schema.sql               Database definition and seed data
+├── pom.xml                        Maven build configuration
+├── db.properties.example          Template for local database credentials
+├── sql/schema.sql                 All tables, seed data and demo logins
 └── src/main/
     ├── java/mindmerge/
-    │   ├── util/DbUtil.java     JDBC connections
-    │   ├── model/Decision.java  A decision record
-    │   ├── dao/DecisionDao.java SQL for the decision table
-    │   └── servlet/             Request handlers
-    ├── resources/               db.properties goes here (you create it)
+    │   ├── util/                  DbUtil (JDBC connections), PasswordUtil (hashing),
+    │   │                          Auth (session helpers)
+    │   ├── model/                 Decision, Project, Tag, User, Viewer, Company, Member,
+    │   │                          Invite, Team
+    │   ├── dao/                   SQL: DashboardDao, DecisionDao, UserDao, CompanyDao,
+    │   │                          InviteDao, TeamDao
+    │   └── servlet/               Request handlers: Home, Login, Register, Logout,
+    │                              Dashboard, Company, People, Teams, Settings, Invite
+    ├── resources/                 db.properties goes here (you create it)
     └── webapp/
-        ├── index.jsp            Entry point, redirects to /home
-        ├── css/style.css
+        ├── index.jsp              Entry point, redirects to /home
+        ├── login.jsp, register.jsp
+        ├── css/style.css          All styling
+        ├── js/                    Landing animation, scroll effects, live search,
+        │                          password reveal, small form helpers
+        ├── img/logo.svg           Logo and favicon
         └── WEB-INF/
-            ├── web.xml          Deployment descriptor
-            └── home.jsp         Home page view
+            ├── web.xml            Deployment descriptor (session timeout)
+            ├── home.jsp           Landing page
+            ├── dashboard.jsp, people.jsp, teams.jsp, settings.jsp, company-new.jsp
+            └── jspf/              Shared fragments: head, sidebar, top bar, logo, notices
 ```
