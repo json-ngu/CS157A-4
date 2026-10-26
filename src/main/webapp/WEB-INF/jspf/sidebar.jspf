@@ -10,7 +10,8 @@
   <nav class="side-nav" aria-label="Main">
     <a class="${activeNav eq 'dashboard' ? 'is-active' : ''}" ${activeNav eq 'dashboard' ? 'aria-current="page"' : ''}
        href="${pageContext.request.contextPath}/dashboard">Dashboard</a>
-    <span class="nav-soon" aria-disabled="true">New decision <span class="soon">Soon</span></span>
+    <a class="${activeNav eq 'new-decision' ? 'is-active' : ''}" ${activeNav eq 'new-decision' ? 'aria-current="page"' : ''}
+       href="${pageContext.request.contextPath}/decisions/new">New decision</a>
     <span class="nav-soon" aria-disabled="true">Decisions <span class="soon">Soon</span></span>
     <span class="nav-soon" aria-disabled="true">Projects <span class="soon">Soon</span></span>
     <span class="nav-soon" aria-disabled="true">Approvals <span class="soon">Soon</span></span>

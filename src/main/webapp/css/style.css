@@ -916,6 +916,18 @@ body.auth .grain {
   box-shadow: 0 0 0 3px rgba(180, 144, 242, 0.3);
 }
 
+.form textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 12px 14px;
+    font: inherit;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    resize: vertical;
+}
+
 .hint {
   margin-top: 6px;
   color: var(--muted);
@@ -2425,4 +2437,70 @@ body.auth .grain {
   .dash-search input[type="search"] {
     width: 100%;
   }
+}
+.options-heading {
+    margin-top: 32px;
+    margin-bottom: 14px;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.option-box {
+    display: grid;
+    gap: 5px;
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.option-box h3 {
+    margin: 0 0 5px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.option-box label {
+    margin: 7px 0 3px;
+    font-size: 12px;
+}
+
+.option-box input,
+.option-box textarea {
+    width: 100%;
+}
+
+.option-box textarea {
+    min-height: 90px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    resize: vertical;
+}
+
+.optional {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.remove-option {
+    width: fit-content;
+    margin-top: 12px;
+    padding: 7px 12px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.remove-option:hover {
+    color: var(--text);
+    border-color: var(--accent);
 }

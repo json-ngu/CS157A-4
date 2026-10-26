@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Statement;
 
 public class DecisionDao {
 
@@ -24,6 +25,16 @@ public class DecisionDao {
         "LEFT JOIN decision_option o ON o.decision_id = d.decision_id AND o.is_chosen = TRUE " +
         "ORDER BY COALESCE(d.decided_at, d.created_at) DESC";
 
+    private static final String CREATE_DECISION = 
+        "INSERT INTO decision " + 
+        "(project_id, created_by, title, context) " + 
+        "VALUES (?, ?, ?, ?)";
+
+    private static final String CREATE_DECISION_OPTION = 
+        "INSERT INTO decision_option " +
+        "(decision_id, option_num, label, description) " + 
+        "VALUES (?, ?, ?, ?)";
+    
     public List<Decision> findAll() throws SQLException {
         List<Decision> results = new ArrayList<>();
 
@@ -36,6 +47,47 @@ public class DecisionDao {
             }
         }
         return results;
+    }
+
+    public int create(Connection connection, int projectId, int userId, String title, String context) throws SQLException {
+        try (
+            PreparedStatement statement =
+                connection.prepareStatement(CREATE_DECISION, Statement.RETURN_GENERATED_KEYS)
+        ) {
+            statement.setInt(1, projectId);
+            statement.setInt(2, userId);
+            statement.setString(3, title);
+            statement.setString(4, context);
+            statement.executeUpdate();
+
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+        }
+
+        throw new SQLException("Could not get the new decision ID.");
+    }
+
+    public void createOption(Connection connection, int decisionId, int optionNum, String label, String description) throws SQLException {
+        try (
+            PreparedStatement statement =
+                connection.prepareStatement(CREATE_DECISION_OPTION)
+        ) {
+            statement.setInt(1, decisionId);
+            statement.setInt(2, optionNum);
+            statement.setString(3, label);
+
+            if (description == null || description.trim().isEmpty()) {
+                statement.setNull(4, java.sql.Types.LONGVARCHAR);
+            } 
+            else {
+                statement.setString(4, description);
+            }
+
+            statement.executeUpdate();
+        }
     }
 
     private Decision mapRow(ResultSet rs) throws SQLException {
