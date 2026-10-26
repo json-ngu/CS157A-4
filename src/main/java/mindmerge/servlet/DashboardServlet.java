@@ -29,14 +29,22 @@ public class DashboardServlet extends HttpServlet {
         User user = Auth.requireUser(request, response);
         if (user == null) return;
         int userId = user.getUserId();
-
+        
+        //Reads in the keyword that was entered in the dashboard search box
         String query = request.getParameter("q");
         query = query == null ? "" : query.trim();
+        
+        // Reads the selected tag from the url
+        String tag = request.getParameter("tag");
+        tag = tag == null ? "" : tag.trim();
+
+        
         boolean mineOnly = "mine".equals(request.getParameter("view"));
 
         Auth.consumeFlash(request);
         request.setAttribute("activeNav", "dashboard");
         request.setAttribute("q", query);
+        request.setAttribute("tag", tag);
         request.setAttribute("view", mineOnly ? "mine" : "team");
         request.setAttribute("greeting", greeting(LocalTime.now()));
 
@@ -44,8 +52,10 @@ public class DashboardServlet extends HttpServlet {
             request.setAttribute("viewer", userDao.findViewer(userId));
             request.setAttribute("invites", inviteDao.findPendingForUser(userId));
             request.setAttribute("review", dashboardDao.findNeedsReview(userId));
-            request.setAttribute("feed", dashboardDao.findFeed(userId, mineOnly, query));
+            request.setAttribute("feed", dashboardDao.findFeed(userId, mineOnly, query, tag));
             request.setAttribute("projects", dashboardDao.findProjects(userId));
+            request.setAttribute( "feed",dashboardDao.findFeed(userId, mineOnly, query, tag));
+            request.setAttribute("tags", dashboardDao.findAllTags());
         } catch (SQLException e) {
             getServletContext().log("Could not load the dashboard", e);
             request.setAttribute("error", "Could not load the dashboard. Check that the database is running.");

@@ -21,7 +21,28 @@
       <form class="dash-search" action="${pageContext.request.contextPath}/dashboard" method="get" role="search">
         <label class="visually-hidden" for="q">Search decisions</label>
         <input id="q" name="q" type="search" value="<c:out value='${q}'/>" placeholder="Search decisions…" autocomplete="off">
+
+        <%-- The selected tag is sent to the servlet as ?tag=database, for example. --%>
+        <label class="visually-hidden" for="tag">Filter by tag</label>
+        <select id="tag" name="tag" onchange="this.form.submit()">
+          <option value="">All tags</option>
+          <c:forEach var="t" items="${tags}">
+            <option value="<c:out value='${t.name}'/>" ${tag eq t.name ? 'selected' : ''}>
+              <c:out value="${t.name}"/>
+            </option>
+          </c:forEach>
+        </select>
+
         <c:if test="${view eq 'mine'}"><input type="hidden" name="view" value="mine"></c:if>
+
+        <%-- Remove the tag filter while keeping the search text and Team/Mine view. --%>
+        <c:if test="${not empty tag}">
+          <c:url var="clearTagUrl" value="/dashboard">
+            <c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if>
+            <c:if test="${view eq 'mine'}"><c:param name="view" value="mine"/></c:if>
+          </c:url>
+          <a class="filter-clear" href="${clearTagUrl}">Clear tag</a>
+        </c:if>
       </form>
       </c:if>
       <p class="visually-hidden" id="searchStatus" role="status" aria-live="polite"></p>
@@ -97,14 +118,25 @@
               </c:choose>
             </h2>
             <nav class="segmented" aria-label="Whose decisions">
-              <c:url var="teamUrl" value="/dashboard"><c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if></c:url>
-              <c:url var="mineUrl" value="/dashboard"><c:param name="view" value="mine"/><c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if></c:url>
+              <%-- Preserve both filters when switching between Team and Mine. --%>
+              <c:url var="teamUrl" value="/dashboard">
+                <c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if>
+                <c:if test="${not empty tag}"><c:param name="tag" value="${tag}"/></c:if>
+              </c:url>
+              <c:url var="mineUrl" value="/dashboard">
+                <c:param name="view" value="mine"/>
+                <c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if>
+                <c:if test="${not empty tag}"><c:param name="tag" value="${tag}"/></c:if>
+              </c:url>
               <a href="${teamUrl}" class="${view eq 'team' ? 'is-active' : ''}" ${view eq 'team' ? 'aria-current="page"' : ''}>Team</a>
               <a href="${mineUrl}" class="${view eq 'mine' ? 'is-active' : ''}" ${view eq 'mine' ? 'aria-current="page"' : ''}>Mine</a>
             </nav>
           </div>
 
           <c:choose>
+            <c:when test="${empty feed and not empty tag}">
+              <p class="dash-empty">No decisions match the <c:out value="${tag}"/> tag<c:if test="${not empty q}"> and “<c:out value="${q}"/>”</c:if>.</p>
+            </c:when>
             <c:when test="${empty feed and not empty q}">
               <p class="dash-empty">No decisions match “<c:out value="${q}"/>”. Try a shorter or different word.</p>
             </c:when>

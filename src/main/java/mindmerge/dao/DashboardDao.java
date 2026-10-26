@@ -52,6 +52,16 @@ public class DashboardDao {
         "LEFT JOIN decision d ON d.project_id = p.project_id " +
         "GROUP BY p.project_id, p.name, p.status, t.name " +
         "ORDER BY last_activity IS NULL, last_activity DESC";
+    
+    /* This function implements the tag for FindFeed*/
+    private String normalizeTag(String tagName) {
+        if (tagName == null) return null;
+
+        String tag = tagName.trim();
+
+        // The "All tags" option sends an empty string: no filter needed.
+        return tag.isEmpty() ? null : tag;
+    }
 
     /** Proposed decisions on teams the viewer leads or approves for. */
     public List<Decision> findNeedsReview(int userId) throws SQLException {
@@ -62,26 +72,72 @@ public class DashboardDao {
             return readDecisions(ps);
         }
     }
+    /** Tags will be directly added from the database and not hardcoded*/
+    public List<Tag> findAllTags() throws SQLException {
+        List<Tag> results = new ArrayList<>();
+
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT name FROM tag ORDER BY name")) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    results.add(new Tag(rs.getString("name")));
+                }
+            }
+        }
+        return results;
+    }
+
 
     /**
      * Recent decisions across the viewer's teams, newest first: the latest 12, or every match when searching.
      * mineOnly limits it to decisions the viewer recorded; query is a full-text search (may be empty).
      */
-    public List<Decision> findFeed(int userId, boolean mineOnly, String query) throws SQLException {
+    /**
+     * Builds the dashboard feed. A blank tagName means "All tags."
+     */
+    public List<Decision> findFeed(int userId, boolean mineOnly, String query, String tagName)
+            throws SQLException {
         String search = toBooleanSearch(query);
+        String tag = normalizeTag(tagName);
 
+        // DECISIONS already restricts results to teams the user belongs to.
         StringBuilder sql = new StringBuilder(DECISIONS).append("WHERE 1 = 1 ");
-        if (mineOnly) sql.append("AND d.created_by = ? ");
-        if (search != null) sql.append("AND MATCH (d.title, d.context, d.rationale) AGAINST (? IN BOOLEAN MODE) ");
-        sql.append(FEED_ORDER).append("LIMIT ").append(search == null ? RECENT_LIMIT : SEARCH_LIMIT);
+
+        if (mineOnly) {
+            sql.append("AND d.created_by = ? ");
+        }
+
+        if (search != null) {
+            sql.append("AND MATCH (d.title, d.context, d.rationale) " +
+                       "AGAINST (? IN BOOLEAN MODE) ");
+        }
+
+        if (tag != null) {
+            // decision_tag connects decisions to tags.
+            // EXISTS checks for a match without adding duplicate decision rows.
+            sql.append("AND EXISTS (" +
+                       "SELECT 1 FROM decision_tag filter_dt " +
+                       "JOIN tag filter_t ON filter_t.tag_id = filter_dt.tag_id " +
+                       "WHERE filter_dt.decision_id = d.decision_id " +
+                       "AND filter_t.name = ?) ");
+        }
+
+        // ORDER BY and LIMIT must come after all WHERE conditions.
+        // Show up to 200 results when a search or tag filter is active.
+        sql.append(FEED_ORDER)
+           .append("LIMIT ")
+           .append(search == null && tag == null ? RECENT_LIMIT : SEARCH_LIMIT);
 
         try (Connection conn = DbUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
+            // Bind values in the same order as the ? placeholders in the SQL.
             int i = 1;
             ps.setInt(i++, userId);
             if (mineOnly) ps.setInt(i++, userId);
-            if (search != null) ps.setString(i, search);
+            if (search != null) ps.setString(i++, search);
+            if (tag != null) ps.setString(i++, tag);
+
             return readDecisions(ps);
         }
     }
@@ -108,6 +164,9 @@ public class DashboardDao {
         }
         return results;
     }
+    
+   
+
 
     /**
      * Turns "mysql full text" into "+mysql* +full* +text*": every word must match, as a prefix.
