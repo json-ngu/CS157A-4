@@ -7,9 +7,29 @@
 
 	<display-name>MindMerge</display-name>
 
+	<!-- Read form posts as UTF-8; without this Tomcat assumes ISO-8859-1 and accented text is stored garbled. -->
+	<request-character-encoding>UTF-8</request-character-encoding>
+
 	<welcome-file-list>
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
+
+	<!-- Themed error pages instead of Tomcat's defaults (which also print the server version). -->
+	<error-page><error-code>404</error-code><location>/WEB-INF/error.jsp</location></error-page>
+	<error-page><error-code>405</error-code><location>/WEB-INF/error.jsp</location></error-page>
+	<error-page><error-code>500</error-code><location>/WEB-INF/error.jsp</location></error-page>
+
+	<!-- X-Frame-Options: DENY (no clickjacking the Approve button) and X-Content-Type-Options: nosniff.
+	     HSTS is off because the app is served over plain HTTP in development. -->
+	<filter>
+		<filter-name>SecurityHeaders</filter-name>
+		<filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+		<init-param><param-name>hstsEnabled</param-name><param-value>false</param-value></init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>SecurityHeaders</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
 	<!-- Sign users out after 30 minutes of inactivity. -->
 	<session-config>

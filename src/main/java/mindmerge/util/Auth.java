@@ -32,11 +32,16 @@ public final class Auth {
         User user = currentUser(request);
         if (user != null && !stillActive(request, user)) {
             request.getSession().invalidate();
-            flash(request, "Your account isn't active. Ask your company admin for access.", true);
+            flash(request, "Your account is inactive. Contact your company administrator for access.", true);
             user = null;
         }
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/login");
+        } else {
+            // Signed-in pages hold private data: never cache them, so Back after logout shows nothing.
+            response.setHeader("Cache-Control", "no-store");
+            // Pages show times in the viewer's own time zone, e.g. ${d.dateTime(userZone)}.
+            request.setAttribute("userZone", Zones.viewerZone(request));
         }
         return user;
     }
@@ -66,6 +71,11 @@ public final class Auth {
         request.setAttribute("noticeError", session.getAttribute(FLASH_ERROR));
         session.removeAttribute(FLASH);
         session.removeAttribute(FLASH_ERROR);
+    }
+
+    /** A form value with surrounding spaces removed; "" when the field was not sent. */
+    public static String trim(String input) {
+        return input == null ? "" : input.trim();
     }
 
     /** Parses a positive id from a request parameter; -1 when missing or invalid. */
