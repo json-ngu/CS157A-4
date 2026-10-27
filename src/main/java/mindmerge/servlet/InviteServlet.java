@@ -28,13 +28,13 @@ public class InviteServlet extends HttpServlet {
         String company = request.getParameter("companyName");
         try {
             if (inviteDao.respond(Auth.intParam(request, "invite"), user.getUserId(), accept)) {
-                Auth.flash(request, accept ? "You joined " + company + "." : "Invite declined.", false);
+                Auth.flash(request, accept ? "You have joined " + company + "." : "Invitation declined.", false);
             } else {
-                Auth.flash(request, "That invite is no longer available.", true);
+                Auth.flash(request, "This invitation is no longer available.", true);
             }
         } catch (SQLException e) {
             getServletContext().log("Invite response failed", e);
-            Auth.flash(request, "The database is unavailable. Nothing was changed.", true);
+            Auth.flash(request, "The database is unavailable. No changes were made.", true);
         }
         response.sendRedirect(request.getContextPath() + "/dashboard");
     }

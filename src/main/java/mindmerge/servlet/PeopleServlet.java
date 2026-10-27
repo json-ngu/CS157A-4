@@ -22,7 +22,7 @@ import java.util.Locale;
 public class PeopleServlet extends HttpServlet {
 
     static final String INVITE_FAILED =
-        "We couldn't invite that email. They need a MindMerge account with invites turned on.";
+        "The invitation could not be sent. The recipient must have an active MindMerge account with invitations enabled.";
 
     private final CompanyDao companyDao = new CompanyDao();
     private final InviteDao inviteDao = new InviteDao();
@@ -39,7 +39,7 @@ public class PeopleServlet extends HttpServlet {
             List<Company> companies = companyDao.findManageable(user.getUserId());
             Company company = pick(companies, Auth.intParam(request, "company"), request.getParameter("company") != null);
             if (company == null) {
-                Auth.flash(request, "You can only manage people in companies where you're an owner or admin.", true);
+                Auth.flash(request, "You can manage people only in companies where you are an owner or administrator.", true);
                 response.sendRedirect(request.getContextPath() + "/dashboard");
                 return;
             }
@@ -53,7 +53,7 @@ public class PeopleServlet extends HttpServlet {
             request.setAttribute("invites", inviteDao.findPendingForCompany(company.getCompanyId()));
         } catch (SQLException e) {
             getServletContext().log("Could not load people", e);
-            request.setAttribute("error", "Could not load this page. Check that the database is running.");
+            request.setAttribute("error", "This page could not be loaded. Verify that the database is running.");
         }
         request.getRequestDispatcher("/WEB-INF/people.jsp").forward(request, response);
     }
@@ -70,8 +70,8 @@ public class PeopleServlet extends HttpServlet {
 
         try {
             String myRole = companyDao.findRole(companyId, user.getUserId());
-            if (!"owner".equals(myRole) && !"admin".equals(myRole)) {
-                Auth.flash(request, "You can only manage people in companies where you're an owner or admin.", true);
+            if (!CompanyDao.canManage(myRole)) {
+                Auth.flash(request, "You can manage people only in companies where you are an owner or administrator.", true);
                 response.sendRedirect(request.getContextPath() + "/dashboard");
                 return;
             }
@@ -91,25 +91,25 @@ public class PeopleServlet extends HttpServlet {
                     cancel(request, myRole, companyId);
                     break;
                 default:
-                    Auth.flash(request, "Unknown action.", true);
+                    Auth.flash(request, "The requested action is not recognized.", true);
             }
         } catch (SQLException e) {
             getServletContext().log("People action failed", e);
-            Auth.flash(request, "The database is unavailable. Nothing was changed.", true);
+            Auth.flash(request, "The database is unavailable. No changes were made.", true);
         }
         response.sendRedirect(back);
     }
 
     private void invite(HttpServletRequest request, User user, String myRole, int companyId) throws SQLException {
-        String email = trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
+        String email = Auth.trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
         String role = "admin".equals(request.getParameter("role")) ? "admin" : "member";
 
         if (email.isEmpty()) {
-            Auth.flash(request, "Enter an email to invite.", true);
+            Auth.flash(request, "Enter the email address of the person to invite.", true);
         } else if ("admin".equals(role) && !"owner".equals(myRole)) {
-            Auth.flash(request, "Only an owner can invite someone as an admin.", true);
+            Auth.flash(request, "Only an owner can invite an administrator.", true);
         } else if (inviteDao.invite(companyId, email, role, user.getUserId())) {
-            Auth.flash(request, "Invite sent to " + email + ". It will appear on their dashboard.", false);
+            Auth.flash(request, "Invitation sent to " + email + ". It will appear on their dashboard.", false);
         } else {
             Auth.flash(request, INVITE_FAILED, true);
         }
@@ -121,12 +121,12 @@ public class PeopleServlet extends HttpServlet {
         String role = inviteDao.findRole(inviteId, companyId);
 
         if (role == null) {
-            Auth.flash(request, "That invite is no longer pending.", true);
+            Auth.flash(request, "This invitation is no longer pending.", true);
         } else if ("admin".equals(role) && !"owner".equals(myRole)) {
-            Auth.flash(request, "Only an owner can cancel an admin invite.", true);
+            Auth.flash(request, "Only an owner can cancel an administrator invitation.", true);
         } else {
             inviteDao.cancel(inviteId, companyId);
-            Auth.flash(request, "Invite cancelled.", false);
+            Auth.flash(request, "Invitation cancelled.", false);
         }
     }
 
@@ -141,12 +141,14 @@ public class PeopleServlet extends HttpServlet {
 
         if (!"owner".equals(myRole)) {
             Auth.flash(request, "Only an owner can change company roles.", true);
-        } else if (currentRole == null || !isCompanyRole(newRole)) {
-            Auth.flash(request, "That person isn't a member of this company.", true);
+        } else if (currentRole == null) {
+            Auth.flash(request, "This person is not a member of the company.", true);
+        } else if (!isCompanyRole(newRole)) {
+            Auth.flash(request, "Select a valid role.", true);
         } else if (newRole.equals(currentRole)) {
-            Auth.flash(request, "No change.", false);
+            Auth.flash(request, "The role is unchanged.", false);
         } else if ("owner".equals(currentRole) && companyDao.countOwners(companyId) <= 1) {
-            Auth.flash(request, "A company needs at least one owner. Make someone else an owner first.", true);
+            Auth.flash(request, "A company must have at least one owner. Assign another owner first.", true);
         } else {
             companyDao.changeRole(companyId, target, newRole);
             Auth.flash(request, "Role updated.", false);
@@ -158,17 +160,17 @@ public class PeopleServlet extends HttpServlet {
         String targetRole = companyDao.findRole(companyId, target);
 
         if (targetRole == null) {
-            Auth.flash(request, "That person isn't a member of this company.", true);
+            Auth.flash(request, "This person is not a member of the company.", true);
         } else if (!"owner".equals(myRole) && !"member".equals(targetRole) && target != user.getUserId()) {
             // Removing an admin or owner is owner-only, like changing their role; anyone may leave.
-            Auth.flash(request, "Only an owner can remove an admin or owner.", true);
+            Auth.flash(request, "Only an owner can remove an administrator or owner.", true);
         } else if ("owner".equals(targetRole) && companyDao.countOwners(companyId) <= 1) {
-            Auth.flash(request, "A company needs at least one owner. Make someone else an owner first.", true);
+            Auth.flash(request, "A company must have at least one owner. Assign another owner first.", true);
         } else {
             companyDao.removeMember(companyId, target);
             Auth.flash(request, target == user.getUserId()
-                    ? "You left the company. Your decisions and comments are kept."
-                    : "Removed from the company. Their decisions and comments are kept.", false);
+                    ? "You have left the company. Your decisions and comments have been retained."
+                    : "Member removed from the company. Their decisions and comments have been retained.", false);
         }
     }
 
@@ -185,9 +187,5 @@ public class PeopleServlet extends HttpServlet {
 
     static boolean isCompanyRole(String role) {
         return "owner".equals(role) || "admin".equals(role) || "member".equals(role);
-    }
-
-    private String trim(String input) {
-        return input == null ? "" : input.trim();
     }
 }

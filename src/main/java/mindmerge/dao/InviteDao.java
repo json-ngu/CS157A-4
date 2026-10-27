@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -185,8 +185,7 @@ public class InviteDao {
                     i.setUserEmail(rs.getString("user_email"));
                     i.setRole(rs.getString("company_role"));
                     i.setInvitedByName(rs.getString("invited_by_name"));
-                    Timestamp created = rs.getTimestamp("created_at");
-                    i.setCreatedAt(created == null ? null : created.toLocalDateTime());
+                    i.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
                     results.add(i);
                 }
             }

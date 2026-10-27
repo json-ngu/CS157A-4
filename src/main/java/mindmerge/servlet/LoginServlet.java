@@ -36,12 +36,12 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String email = trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
+        String email = Auth.trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
         String password = request.getParameter("password");
         request.setAttribute("email", email);
 
         if (email.isEmpty() || password == null || password.isEmpty()) {
-            showForm(request, response, "Please enter your email and password.");
+            showForm(request, response, "Enter your email address and password.");
             return;
         }
 
@@ -52,7 +52,7 @@ public class LoginServlet extends HttpServlet {
                 return;
             }
             if (!user.isActive()) {
-                showForm(request, response, "This account isn't active. Ask your company admin for access.");
+                showForm(request, response, "This account is inactive. Contact your company administrator for access.");
                 return;
             }
 
@@ -65,7 +65,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/dashboard");
         } catch (SQLException e) {
             getServletContext().log("Login failed", e);
-            showForm(request, response, "The database is unavailable.");
+            showForm(request, response, "The database is unavailable. Please try again later.");
         }
     }
 
@@ -73,9 +73,5 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setAttribute("error", error);
         request.getRequestDispatcher("/login.jsp").forward(request, response);
-    }
-
-    private String trim(String input) {
-        return input == null ? "" : input.trim();
     }
 }

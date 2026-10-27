@@ -31,7 +31,7 @@ public class SettingsServlet extends HttpServlet {
             request.setAttribute("viewer", userDao.findViewer(user.getUserId()));
         } catch (SQLException e) {
             getServletContext().log("Could not load settings", e);
-            request.setAttribute("error", "Could not load your settings. Check that the database is running.");
+            request.setAttribute("error", "Your settings could not be loaded. Verify that the database is running.");
         }
         request.getRequestDispatcher("/WEB-INF/settings.jsp").forward(request, response);
     }
@@ -47,11 +47,11 @@ public class SettingsServlet extends HttpServlet {
         boolean allow = request.getParameter("allowInvites") != null;
         try {
             userDao.setAllowInvites(user.getUserId(), allow);
-            Auth.flash(request, allow ? "Invites are on. Companies can invite you."
-                                      : "Invites are off. No company can invite you, and pending invites were cancelled.", false);
+            Auth.flash(request, allow ? "Invitations are enabled. Companies can now invite you."
+                                      : "Invitations are disabled. Any pending invitations have been cancelled.", false);
         } catch (SQLException e) {
             getServletContext().log("Could not save settings", e);
-            Auth.flash(request, "The database is unavailable. Your setting wasn't saved.", true);
+            Auth.flash(request, "The database is unavailable. Your setting was not saved.", true);
         }
         response.sendRedirect(request.getContextPath() + "/settings");
     }

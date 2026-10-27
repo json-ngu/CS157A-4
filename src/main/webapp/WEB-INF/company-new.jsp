@@ -10,7 +10,7 @@
     <header class="manage-head">
       <div>
         <h1>Create a company</h1>
-        <p class="dash-sub">You'll be its owner. Next you can invite people and set up teams.</p>
+        <p class="dash-sub">You will be the owner of the new company. You can then invite members and create teams.</p>
       </div>
     </header>
 

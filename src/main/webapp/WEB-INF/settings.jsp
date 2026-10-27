@@ -22,19 +22,19 @@
         <dl class="facts">
           <div><dt>Name</dt><dd><c:out value="${sessionScope.user.fullName}"/></dd></div>
           <div><dt>Email</dt><dd><c:out value="${sessionScope.user.email}"/></dd></div>
-          <div><dt>Companies</dt><dd><c:out value="${viewer.inCompany ? viewer.companies : 'None yet'}"/></dd></div>
+          <div><dt>Companies</dt><dd><c:out value="${viewer.inCompany ? viewer.companies : 'None'}"/></dd></div>
         </dl>
       </section>
 
       <section class="box" aria-labelledby="invitesHeading">
-        <h2 id="invitesHeading">Invites</h2>
+        <h2 id="invitesHeading">Invitations</h2>
         <form class="toggle-form" method="post" action="${pageContext.request.contextPath}/settings">
           <label class="toggle">
             <input type="checkbox" name="allowInvites" value="on" ${viewer.allowInvites ? 'checked' : ''} data-autosubmit>
             <span class="toggle-track" aria-hidden="true"></span>
             <span>
               <span class="toggle-label">Allow companies to invite me</span>
-              <span class="panel-note">When this is off, nobody can send you a company invite.</span>
+              <span class="panel-note">When this setting is disabled, companies cannot send you invitations.</span>
             </span>
           </label>
           <button class="pill pill-ghost pill-sm" type="submit">Save</button>
@@ -43,7 +43,7 @@
 
       <section class="box" aria-labelledby="companyHeading">
         <h2 id="companyHeading">Start a company</h2>
-        <p class="panel-note">Create a company to invite people, set up teams and record decisions. You'll be its owner.</p>
+        <p class="panel-note">Create a company to invite members, organize teams and record decisions. You will be its owner.</p>
         <a class="pill pill-glow" href="${pageContext.request.contextPath}/companies/new">Create a company</a>
       </section>
     </c:if>

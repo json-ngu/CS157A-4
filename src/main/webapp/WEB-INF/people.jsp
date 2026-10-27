@@ -26,8 +26,8 @@
       <c:set var="iAmOwner" value="${company.owner}"/>
 
       <section class="box" aria-labelledby="inviteHeading">
-        <h2 id="inviteHeading">Invite someone</h2>
-        <p class="panel-note">They need a MindMerge account. The invite appears on their dashboard to join or decline.</p>
+        <h2 id="inviteHeading">Invite a member</h2>
+        <p class="panel-note">The recipient must have a MindMerge account. The invitation will appear on their dashboard, where they can accept or decline it.</p>
         <form class="inline-form" method="post" action="${pageContext.request.contextPath}/people">
           <input type="hidden" name="company" value="${company.companyId}">
           <input type="hidden" name="action" value="invite">
@@ -47,11 +47,11 @@
               <span class="muted">as a member</span>
             </c:otherwise>
           </c:choose>
-          <button class="pill pill-glow" type="submit">Send invite</button>
+          <button class="pill pill-glow" type="submit">Send invitation</button>
         </form>
 
         <c:if test="${not empty invites}">
-          <h3 class="subhead">Pending invites</h3>
+          <h3 class="subhead">Pending invitations</h3>
           <ul class="row-list">
             <c:forEach var="inv" items="${invites}">
               <li class="row">
@@ -65,7 +65,7 @@
                     <input type="hidden" name="company" value="${company.companyId}">
                     <input type="hidden" name="action" value="cancel">
                     <input type="hidden" name="invite" value="${inv.inviteId}">
-                    <button class="pill pill-ghost pill-sm" type="submit">Cancel invite</button>
+                    <button class="pill pill-ghost pill-sm" type="submit">Cancel invitation</button>
                   </form>
                 </c:if>
               </li>
@@ -75,9 +75,9 @@
       </section>
 
       <section class="box" aria-labelledby="membersHeading">
-        <h2 id="membersHeading">Members <span class="muted"><c:out value="${fn:length(members)}"/></span></h2>
+        <h2 id="membersHeading">Members <span class="count"><c:out value="${fn:length(members)}"/></span></h2>
         <c:if test="${not iAmOwner}">
-          <p class="panel-note">Only owners can change company roles. You can set team roles on the Teams page.</p>
+          <p class="panel-note">Only owners can change company roles. Team roles are managed on the Teams page.</p>
         </c:if>
         <table class="table">
           <thead>
@@ -121,7 +121,7 @@
                 <td class="actions-cell">
                   <c:if test="${canRemove}">
                     <form method="post" action="${pageContext.request.contextPath}/people"
-                          data-confirm="Remove ${fn:escapeXml(m.fullName)} from ${fn:escapeXml(company.name)}? Their decisions and comments are kept.">
+                          data-confirm="Remove ${fn:escapeXml(m.fullName)} from ${fn:escapeXml(company.name)}? Their decisions and comments will be retained.">
                       <input type="hidden" name="company" value="${company.companyId}">
                       <input type="hidden" name="action" value="remove">
                       <input type="hidden" name="user" value="${m.userId}">

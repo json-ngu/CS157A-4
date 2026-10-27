@@ -29,24 +29,27 @@
           <input type="hidden" name="company" value="${company.companyId}">
           <input type="hidden" name="action" value="create">
           <label class="visually-hidden" for="teamName">Team name</label>
-          <input id="teamName" class="input" name="name" type="text" required maxlength="150" placeholder="e.g. Platform Engineering">
+          <input id="teamName" class="input" name="name" type="text" required maxlength="150" placeholder="For example: Platform Engineering">
           <button class="pill pill-glow" type="submit">Create team</button>
         </form>
       </section>
 
       <c:choose>
         <c:when test="${empty teams}">
-          <p class="dash-empty">No teams yet. Create one above, then add people from <c:out value="${company.name}"/>.</p>
+          <section class="box" aria-labelledby="noTeamsHeading">
+            <h2 id="noTeamsHeading">Teams <span class="count">0</span></h2>
+            <p class="panel-note">No teams have been created. Create a team above, then add members of <c:out value="${company.name}"/>.</p>
+          </section>
         </c:when>
         <c:otherwise>
           <div class="team-grid">
             <c:forEach var="t" items="${teams}">
               <section class="box team-card" aria-labelledby="team${t.teamId}">
-                <h2 id="team${t.teamId}"><c:out value="${t.name}"/> <span class="muted"><c:out value="${fn:length(t.members)}"/></span></h2>
+                <h2 id="team${t.teamId}"><c:out value="${t.name}"/> <span class="count"><c:out value="${fn:length(t.members)}"/></span></h2>
 
                 <c:choose>
                   <c:when test="${empty t.members}">
-                    <p class="dash-empty">Nobody on this team yet.</p>
+                    <p class="dash-empty">This team has no members.</p>
                   </c:when>
                   <c:otherwise>
                     <ul class="row-list">
@@ -68,7 +71,7 @@
                               <button class="pill pill-ghost pill-sm" type="submit">Save</button>
                             </form>
                             <form method="post" action="${pageContext.request.contextPath}/teams"
-                                  data-confirm="Remove ${fn:escapeXml(m.fullName)} from ${fn:escapeXml(t.name)}? Their decisions and comments are kept.">
+                                  data-confirm="Remove ${fn:escapeXml(m.fullName)} from ${fn:escapeXml(t.name)}? Their decisions and comments will be retained.">
                               <input type="hidden" name="company" value="${company.companyId}">
                               <input type="hidden" name="team" value="${t.teamId}">
                               <input type="hidden" name="action" value="remove">
@@ -90,9 +93,9 @@
                     <input type="hidden" name="company" value="${company.companyId}">
                     <input type="hidden" name="team" value="${t.teamId}">
                     <input type="hidden" name="action" value="add">
-                    <label class="visually-hidden" for="add${t.teamId}">Person to add</label>
+                    <label class="visually-hidden" for="add${t.teamId}">Member to add</label>
                     <select id="add${t.teamId}" class="select select-sm" name="user" required>
-                      <option value="">Add someone…</option>
+                      <option value="">Select a member…</option>
                       <c:forEach var="m" items="${members}">
                         <c:if test="${not t.hasMember(m.userId)}"><option value="${m.userId}"><c:out value="${m.fullName}"/></option></c:if>
                       </c:forEach>

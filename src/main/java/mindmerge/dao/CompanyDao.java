@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,6 +105,11 @@ public class CompanyDao {
         return results;
     }
 
+    /** Owners and admins manage a company's people and teams. */
+    public static boolean canManage(String companyRole) {
+        return "owner".equals(companyRole) || "admin".equals(companyRole);
+    }
+
     /** The user's current role in the company, or null when they aren't a member. */
     public String findRole(int companyId, int userId) throws SQLException {
         try (Connection conn = DbUtil.getConnection();
@@ -186,8 +191,7 @@ public class CompanyDao {
         m.setEmail(rs.getString("email"));
         m.setRole(rs.getString("role"));
         m.setStatus(rs.getString("status"));
-        Timestamp joined = rs.getTimestamp("joined_at");
-        m.setJoinedAt(joined == null ? null : joined.toLocalDateTime());
+        m.setJoinedAt(rs.getObject("joined_at", LocalDateTime.class));
         return m;
     }
 }

@@ -103,24 +103,26 @@ public class TeamDao {
         }
     }
 
-    public void changeRole(int teamId, int userId, String role) throws SQLException {
+    // Both return false when the person is not a current member of the team, so nothing changed.
+    // (Connector/J counts matched rows, so setting the same role again still returns true.)
+    public boolean changeRole(int teamId, int userId, String role) throws SQLException {
         try (Connection conn = DbUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(CHANGE_ROLE)) {
 
             ps.setString(1, role);
             ps.setInt(2, teamId);
             ps.setInt(3, userId);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         }
     }
 
-    public void removeMember(int teamId, int userId) throws SQLException {
+    public boolean removeMember(int teamId, int userId) throws SQLException {
         try (Connection conn = DbUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(CLOSE_MEMBERSHIP)) {
 
             ps.setInt(1, teamId);
             ps.setInt(2, userId);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         }
     }
 }

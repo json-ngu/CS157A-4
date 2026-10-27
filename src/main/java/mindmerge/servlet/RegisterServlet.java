@@ -1,6 +1,8 @@
 package mindmerge.servlet;
 
 import mindmerge.dao.UserDao;
+import mindmerge.util.Auth;
+import mindmerge.util.Limits;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,10 +18,6 @@ import java.util.Locale;
 public class RegisterServlet extends HttpServlet {
 
     private static final int DUPLICATE_KEY = 1062;
-    private static final int MAX_NAME = 120;     // user.full_name
-    private static final int MAX_EMAIL = 180;    // user.email
-    private static final int MIN_PASSWORD = 8;
-    private static final int MAX_PASSWORD = 128; // bounds the hashing work per request
 
     private final UserDao userDao = new UserDao();
 
@@ -33,8 +31,8 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String fullName = trim(request.getParameter("fullName"));
-        String email = trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
+        String fullName = Auth.trim(request.getParameter("fullName"));
+        String email = Auth.trim(request.getParameter("email")).toLowerCase(Locale.ROOT);
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
 
@@ -43,19 +41,19 @@ public class RegisterServlet extends HttpServlet {
         request.setAttribute("email", email);
 
         if (fullName.isEmpty() || email.isEmpty() || password == null || password.isEmpty()) {
-            showForm(request, response, "Please complete every field.");
+            showForm(request, response, "Complete all required fields.");
             return;
         }
-        if (fullName.length() > MAX_NAME) {
-            showForm(request, response, "Full name must be " + MAX_NAME + " characters or fewer.");
+        if (fullName.length() > Limits.FULL_NAME) {
+            showForm(request, response, "Full name must be " + Limits.FULL_NAME + " characters or fewer.");
             return;
         }
-        if (email.length() > MAX_EMAIL || !email.matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) {
+        if (email.length() > Limits.EMAIL || !email.matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) {
             showForm(request, response, "Enter a valid email address.");
             return;
         }
-        if (password.length() < MIN_PASSWORD || password.length() > MAX_PASSWORD) {
-            showForm(request, response, "Password must be " + MIN_PASSWORD + " to " + MAX_PASSWORD + " characters.");
+        if (password.length() < Limits.MIN_PASSWORD || password.length() > Limits.MAX_PASSWORD) {
+            showForm(request, response, "Password must be " + Limits.MIN_PASSWORD + " to " + Limits.MAX_PASSWORD + " characters.");
             return;
         }
         if (!password.equals(confirmPassword)) {
@@ -76,7 +74,7 @@ public class RegisterServlet extends HttpServlet {
                 showForm(request, response, "An account with that email already exists.");
             } else {
                 getServletContext().log("Registration failed", e);
-                showForm(request, response, "The database is unavailable.");
+                showForm(request, response, "The database is unavailable. Please try again later.");
             }
         }
     }
@@ -85,9 +83,5 @@ public class RegisterServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setAttribute("error", error);
         request.getRequestDispatcher("/register.jsp").forward(request, response);
-    }
-
-    private String trim(String input) {
-        return input == null ? "" : input.trim();
     }
 }
