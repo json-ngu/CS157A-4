@@ -2438,69 +2438,81 @@ body.auth .grain {
     width: 100%;
   }
 }
+/* New decision: the form sits directly in its card, and options are grouped in a fieldset. */
+.decision-form {
+  grid-template-columns: minmax(0, 1fr); /* long project names can't widen the card on phones */
+  margin-top: 0;
+}
+
+.decision-form .select {
+  width: 100%;
+  height: 46px;
+  padding-left: 14px;
+}
+
+.decision-form .options {
+  min-width: 0;
+  margin: 28px 0 0;
+  padding: 0;
+  border: none;
+}
+
 .options-heading {
-    margin-top: 32px;
-    margin-bottom: 14px;
-    font-size: 18px;
-    font-weight: 500;
+  padding: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.decision-form .options .panel-note {
+  margin-top: 4px;
 }
 
 .option-box {
-    display: grid;
-    gap: 5px;
-    margin-top: 12px;
-    padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.035);
-    border: 1px solid var(--line);
-    border-radius: 10px;
+  display: grid;
+  margin-top: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--line);
+  border-radius: 10px;
 }
 
 .option-box h3 {
-    margin: 0 0 5px;
-    font-size: 14px;
-    font-weight: 500;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .option-box label {
-    margin: 7px 0 3px;
-    font-size: 12px;
-}
-
-.option-box input,
-.option-box textarea {
-    width: 100%;
+  margin: 12px 0 6px;
+  font-size: 12.5px;
 }
 
 .option-box textarea {
-    min-height: 90px;
-    padding: 12px 14px;
-    font: inherit;
-    font-size: 14px;
-    color: var(--text);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    resize: vertical;
+  min-height: 90px;
 }
 
 .optional {
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 400;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
 }
 
 .remove-option {
-    width: fit-content;
-    margin-top: 12px;
-    padding: 7px 12px;
-    color: var(--muted);
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    cursor: pointer;
+  justify-self: start;
+  margin-top: 12px;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .remove-option:hover {
-    color: var(--text);
-    border-color: var(--accent);
+  color: var(--danger);
+}
+
+.add-option {
+  margin: 14px 0 24px;
 }

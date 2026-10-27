@@ -16,101 +16,164 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
-
-
+/** Records a new decision, with its options, in one of the viewer's projects. */
 @WebServlet("/decisions/new")
 public class DecisionServlet extends HttpServlet {
+
+    private static final int MAX_TITLE = 220;  // decision.title
+    private static final int MAX_LABEL = 220;  // decision_option.label
+    private static final int MIN_OPTIONS = 2;
 
     private final DecisionDao decisionDao = new DecisionDao();
     private final UserDao userDao = new UserDao();
     private final DashboardDao dashboardDao = new DashboardDao();
 
-    // displays or loads a page
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-        throws ServletException, IOException {
-        
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
         User user = Auth.requireUser(request, response);
         if (user == null) return;
 
+        showForm(request, response, user, null);
+    }
 
-        request.setAttribute("activeNav", "new-decision");
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User user = Auth.requireUser(request, response);
+        if (user == null) return;
+
+        int projectId = Auth.intParam(request, "projectId");
+        String title = trim(request.getParameter("title"));
+        String context = trim(request.getParameter("context"));
+        List<DraftOption> options = readOptions(request);
+
+        // Refill the form after an error.
+        request.setAttribute("projectId", projectId);
+        request.setAttribute("title", title);
+        request.setAttribute("context", context);
+        request.setAttribute("options", options);
+
+        String error = validate(title, context, options);
+        if (error != null) {
+            showForm(request, response, user, error);
+            return;
+        }
 
         try {
-            request.setAttribute("viewer", userDao.findViewer(user.getUserId()));
-            List<Project> projects = dashboardDao.findProjects(user.getUserId());
-            request.setAttribute("projects", projects);
+            // Only projects on the viewer's own teams; the dropdown hiding the rest isn't enough.
+            if (!isOwnProject(dashboardDao.findProjects(user.getUserId()), projectId)) {
+                showForm(request, response, user, "Choose one of your projects.");
+                return;
+            }
 
+            try (Connection conn = DbUtil.getConnection()) {
+                conn.setAutoCommit(false);
+                try {
+                    int decisionId = decisionDao.create(conn, projectId, user.getUserId(), title, context);
+                    for (int i = 0; i < options.size(); i++) {
+                        DraftOption o = options.get(i);
+                        decisionDao.createOption(conn, decisionId, i + 1, o.getLabel(), o.getDescription());
+                    }
+                    conn.commit();
+                } catch (SQLException e) {
+                    conn.rollback();
+                    throw e;
+                }
+            }
         } catch (SQLException e) {
-            getServletContext().log("Could not load decision page", e);
-            request.setAttribute("error","The page could not be loaded.");
+            getServletContext().log("Could not create decision", e);
+            showForm(request, response, user, "The database is unavailable. Your decision wasn't saved.");
+            return;
+        }
+
+        Auth.flash(request, "Decision recorded. It's waiting for review.", false);
+        response.sendRedirect(request.getContextPath() + "/dashboard");
+    }
+
+    /** Returns the first problem with the submitted form, or null when it's valid. */
+    private String validate(String title, String context, List<DraftOption> options) {
+        if (title.isEmpty() || context.isEmpty()) {
+            return "Give the decision a title and some context.";
+        }
+        if (title.length() > MAX_TITLE) {
+            return "Title must be " + MAX_TITLE + " characters or fewer.";
+        }
+        if (options.size() < MIN_OPTIONS) {
+            return "Add at least " + MIN_OPTIONS + " options.";
+        }
+        for (DraftOption o : options) {
+            if (o.getLabel().isEmpty()) {
+                return "Every option needs a name.";
+            }
+            if (o.getLabel().length() > MAX_LABEL) {
+                return "Option names must be " + MAX_LABEL + " characters or fewer.";
+            }
+        }
+        return null;
+    }
+
+    private void showForm(HttpServletRequest request, HttpServletResponse response, User user, String error)
+            throws ServletException, IOException {
+
+        request.setAttribute("activeNav", "new-decision");
+        request.setAttribute("error", error);
+        if (request.getAttribute("options") == null) {
+            List<DraftOption> blank = new ArrayList<>();
+            for (int i = 0; i < MIN_OPTIONS; i++) blank.add(new DraftOption("", ""));
+            request.setAttribute("options", blank);
+        }
+        try {
+            request.setAttribute("viewer", userDao.findViewer(user.getUserId()));
+            request.setAttribute("projects", dashboardDao.findProjects(user.getUserId()));
+        } catch (SQLException e) {
+            getServletContext().log("Could not load the new decision page", e);
+            request.setAttribute("error", "Could not load this page. Check that the database is running.");
         }
         request.getRequestDispatcher("/WEB-INF/decision-new.jsp").forward(request, response);
     }
 
-    // processes data submitted by user
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-        throws ServletException, IOException {
+    /** Pairs each option name with its description, in the order they were sent. */
+    private List<DraftOption> readOptions(HttpServletRequest request) {
+        String[] labels = request.getParameterValues("optionLabel");
+        String[] descriptions = request.getParameterValues("optionDescription");
+        List<DraftOption> options = new ArrayList<>();
+        if (labels == null) return options;
 
-        User user = Auth.requireUser(request, response);
-        if (user == null) return;
-        
-        request.setAttribute("activeNav", "new-decision");
-
-        String title = request.getParameter("title");
-        String context = request.getParameter("context");
-        int projectId = Integer.parseInt(request.getParameter("projectId"));
-
-        String[] optionLabels = request.getParameterValues("optionLabel");
-        String[] optionDescriptions = request.getParameterValues("optionDescription");
-        
-        Connection connection = null;
-
-        try {
-            connection = DbUtil.getConnection();
-            connection.setAutoCommit(false);
-
-            int decisionId = decisionDao.create(connection, projectId, user.getUserId(), title, context);
-            if (optionLabels == null || optionLabels.length < 2) {
-                request.setAttribute("error","Please provide at least two options.");
-                request.getRequestDispatcher("/WEB-INF/decision-new.jsp").forward(request, response);
-                return;
-            }
-
-            for (int i = 0; i < optionLabels.length; i++) {
-                String label = optionLabels[i].trim();
-                String description = "";
-
-                if (optionDescriptions != null && i < optionDescriptions.length && optionDescriptions[i] != null) {
-                    description = optionDescriptions[i].trim();
-                }
-
-                if (label.isEmpty()) {
-                    throw new SQLException("Option name cannot be empty.");
-                }
-                decisionDao.createOption(connection, decisionId, i + 1, label, description);
-            }
-            connection.commit();
-            response.sendRedirect(request.getContextPath() + "/dashboard");
-
-        } catch (SQLException e) {
-            getServletContext().log("Could not create decision.", e);
-            request.setAttribute("error", "The decision could not be created.");
-            
-            try {
-                request.setAttribute("viewer", userDao.findViewer(user.getUserId()));
-            } catch (SQLException viewerError) {
-                getServletContext().log("Could not load reload viewer", e);
-            }
-
-             try {
-                connection.rollback();
-            } catch (SQLException rollbackError) {
-                getServletContext().log("Rollback failed", rollbackError);
-            }
-
-            request.getRequestDispatcher("/WEB-INF/decision-new.jsp").forward(request, response);
+        for (int i = 0; i < labels.length; i++) {
+            String description = descriptions != null && i < descriptions.length ? descriptions[i] : null;
+            options.add(new DraftOption(trim(labels[i]), trim(description)));
         }
+        return options;
+    }
+
+    private boolean isOwnProject(List<Project> projects, int projectId) {
+        for (Project p : projects) {
+            if (p.getProjectId() == projectId) return true;
+        }
+        return false;
+    }
+
+    private String trim(String input) {
+        return input == null ? "" : input.trim();
+    }
+
+    /** An option as typed into the form; used to refill it after an error. */
+    public static class DraftOption {
+        private final String label;
+        private final String description;
+
+        DraftOption(String label, String description) {
+            this.label = label;
+            this.description = description;
+        }
+
+        public String getLabel()       { return label; }
+        public String getDescription() { return description; }
     }
 }

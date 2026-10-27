@@ -113,9 +113,12 @@
           <div class="section-bar">
             <h2 id="feedHeading">
               <c:choose>
-                <c:when test="${not empty q}">Results for “<c:out value="${q}"/>” <span class="muted"><c:out value="${fn:length(feed)}"/> <c:out value="${fn:length(feed) == 1 ? 'decision' : 'decisions'}"/></span></c:when>
+                <c:when test="${not empty q and not empty tag}">Results for “<c:out value="${q}"/>” in “<c:out value="${tag}"/>”</c:when>
+                <c:when test="${not empty q}">Results for “<c:out value="${q}"/>”</c:when>
+                <c:when test="${not empty tag}">Tagged “<c:out value="${tag}"/>”</c:when>
                 <c:otherwise>Recent decisions</c:otherwise>
               </c:choose>
+              <c:if test="${not empty q or not empty tag}"> <span class="muted"><c:out value="${fn:length(feed)}"/> <c:out value="${fn:length(feed) == 1 ? 'decision' : 'decisions'}"/></span></c:if>
             </h2>
             <nav class="segmented" aria-label="Whose decisions">
               <%-- Preserve both filters when switching between Team and Mine. --%>

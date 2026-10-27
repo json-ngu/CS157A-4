@@ -54,8 +54,7 @@ public class DashboardServlet extends HttpServlet {
             request.setAttribute("review", dashboardDao.findNeedsReview(userId));
             request.setAttribute("feed", dashboardDao.findFeed(userId, mineOnly, query, tag));
             request.setAttribute("projects", dashboardDao.findProjects(userId));
-            request.setAttribute( "feed",dashboardDao.findFeed(userId, mineOnly, query, tag));
-            request.setAttribute("tags", dashboardDao.findAllTags());
+            request.setAttribute("tags", dashboardDao.findTags(userId));
         } catch (SQLException e) {
             getServletContext().log("Could not load the dashboard", e);
             request.setAttribute("error", "Could not load the dashboard. Check that the database is running.");

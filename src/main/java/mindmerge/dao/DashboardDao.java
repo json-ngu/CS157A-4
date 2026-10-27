@@ -63,6 +63,14 @@ public class DashboardDao {
         return tag.isEmpty() ? null : tag;
     }
 
+    private static final String FIND_TAGS =
+        "SELECT DISTINCT t.name FROM tag t " +
+        "JOIN decision_tag dt ON dt.tag_id = t.tag_id " +
+        "JOIN decision d ON d.decision_id = dt.decision_id " +
+        "JOIN project p ON p.project_id = d.project_id " +
+        "JOIN team_member tm ON tm.team_id = p.team_id AND tm.user_id = ? AND tm.left_at IS NULL " +
+        "ORDER BY t.name";
+
     /** Proposed decisions on teams the viewer leads or approves for. */
     public List<Decision> findNeedsReview(int userId) throws SQLException {
         try (Connection conn = DbUtil.getConnection();
@@ -72,12 +80,13 @@ public class DashboardDao {
             return readDecisions(ps);
         }
     }
-    /** Tags will be directly added from the database and not hardcoded*/
-    public List<Tag> findAllTags() throws SQLException {
+    /** Tags used on decisions in the viewer's teams (the same scope as the feed), for the tag filter. */
+    public List<Tag> findTags(int userId) throws SQLException {
         List<Tag> results = new ArrayList<>();
 
         try (Connection conn = DbUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT name FROM tag ORDER BY name")) {
+             PreparedStatement ps = conn.prepareStatement(FIND_TAGS)) {
+            ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     results.add(new Tag(rs.getString("name")));
@@ -89,11 +98,9 @@ public class DashboardDao {
 
 
     /**
-     * Recent decisions across the viewer's teams, newest first: the latest 12, or every match when searching.
-     * mineOnly limits it to decisions the viewer recorded; query is a full-text search (may be empty).
-     */
-    /**
-     * Builds the dashboard feed. A blank tagName means "All tags."
+     * Recent decisions across the viewer's teams, newest first: the latest 12, or every match when
+     * searching or filtering. mineOnly limits it to decisions the viewer recorded; query is a full-text
+     * search and tagName a tag filter (either may be empty: a blank tagName means "All tags").
      */
     public List<Decision> findFeed(int userId, boolean mineOnly, String query, String tagName)
             throws SQLException {
