@@ -1,14 +1,12 @@
 package mindmerge.model;
 
+import mindmerge.util.Zones;
+
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class Decision {
-
-    private static final DateTimeFormatter SHORT_DATE = DateTimeFormatter.ofPattern("MMM d", Locale.US);
 
     private int           decisionId;
     private String        projectName;
@@ -59,9 +57,18 @@ public class Decision {
     public List<Tag> getTags()              { return tags; }
     public void setTags(List<Tag> v)        { this.tags = v; }
 
-    /** "May 14": when it was decided, or when it was proposed if it hasn't been yet. */
-    public String getShortDate() {
-        LocalDateTime when = decidedAt != null ? decidedAt : createdAt;
-        return when == null ? "" : when.format(SHORT_DATE);
+    /** When it was decided, or when it was proposed if it hasn't been yet. */
+    private LocalDateTime when() {
+        return decidedAt != null ? decidedAt : createdAt;
+    }
+
+    /** "May 14, 2:30 PM" in the viewer's zone (the request's userZone attribute). */
+    public String dateTime(String zoneId) {
+        return Zones.dateTime(when(), zoneId);
+    }
+
+    /** "May 14 at 2:30 PM" in the viewer's zone, for "Proposed on ..." sentences. */
+    public String dateAtTime(String zoneId) {
+        return Zones.dateAtTime(when(), zoneId);
     }
 }

@@ -57,7 +57,7 @@ public class DashboardServlet extends HttpServlet {
             request.setAttribute("tags", dashboardDao.findTags(userId));
         } catch (SQLException e) {
             getServletContext().log("Could not load the dashboard", e);
-            request.setAttribute("error", "Could not load the dashboard. Check that the database is running.");
+            request.setAttribute("error", "The dashboard could not be loaded. Verify that the database is running.");
         }
 
         request.getRequestDispatcher("/WEB-INF/dashboard.jsp").forward(request, response);

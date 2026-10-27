@@ -1,9 +1,11 @@
-// New decision page: add and remove option cards. A decision keeps at least two options,
-// so Remove only shows when there are more. Without JS the form posts the options it shows.
+// Create decision page: add and remove option cards. A decision keeps at least two options,
+// so Remove only shows when there are more. Each card's radio selects the recommended option;
+// its value is the card's position. Without JS the form posts the options it shows.
 (function () {
   "use strict";
 
   var MIN_OPTIONS = 2;
+  var MAX_OPTIONS = 10; // DecisionServlet.MAX_OPTIONS
   var list = document.getElementById("optionList");
   var addButton = document.getElementById("addOption");
   if (!list || !addButton) return;
@@ -19,24 +21,27 @@
       var n = index + 1;
       card.querySelector("h3").textContent = "Option " + n;
       var labels = card.querySelectorAll("label");
-      var name = card.querySelector("input");
+      var name = card.querySelector("input[type=text]");
       var description = card.querySelector("textarea");
       name.id = "optionLabel" + n;
       description.id = "optionDescription" + n;
       labels[0].htmlFor = name.id;
       labels[1].htmlFor = description.id;
+      card.querySelector("input[type=radio]").value = n;
       card.querySelector(".remove-option").hidden = all.length <= MIN_OPTIONS;
     });
+    addButton.hidden = all.length >= MAX_OPTIONS;
   }
 
   // A new card is a copy of the first one with its fields cleared.
   addButton.addEventListener("click", function () {
     var card = cards()[0].cloneNode(true);
-    card.querySelector("input").value = "";
+    card.querySelector("input[type=text]").value = "";
     card.querySelector("textarea").value = "";
+    card.querySelector("input[type=radio]").checked = false;
     list.appendChild(card);
     renumber();
-    card.querySelector("input").focus();
+    card.querySelector("input[type=text]").focus();
   });
 
   list.addEventListener("click", function (event) {

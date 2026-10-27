@@ -35,7 +35,7 @@
 
         <c:if test="${view eq 'mine'}"><input type="hidden" name="view" value="mine"></c:if>
 
-        <%-- Remove the tag filter while keeping the search text and Team/Mine view. --%>
+        <%-- Remove the tag filter while keeping the search text and the All/My decisions view. --%>
         <c:if test="${not empty tag}">
           <c:url var="clearTagUrl" value="/dashboard">
             <c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if>
@@ -54,18 +54,18 @@
     </c:if>
 
     <c:if test="${empty error}">
-      <%-- Pending invites: the invited person joins or declines here. --%>
+      <%-- Pending invitations: the invited person accepts or declines here. --%>
       <c:forEach var="inv" items="${invites}">
         <section class="invite-banner" aria-label="Invitation from ${inv.companyName}">
           <p>
             <strong><c:out value="${inv.invitedByName}"/></strong> invited you to join
             <strong><c:out value="${inv.companyName}"/></strong> as
-            <c:out value="${inv.role eq 'admin' ? 'an admin' : 'a member'}"/>.
+            <c:out value="${inv.role eq 'admin' ? 'an administrator' : 'a member'}"/>.
           </p>
           <form class="invite-actions" method="post" action="${pageContext.request.contextPath}/invites">
             <input type="hidden" name="invite" value="${inv.inviteId}">
             <input type="hidden" name="companyName" value="<c:out value='${inv.companyName}'/>">
-            <button class="pill pill-glow pill-sm" type="submit" name="action" value="accept">Join</button>
+            <button class="pill pill-glow pill-sm" type="submit" name="action" value="accept">Accept</button>
             <button class="pill pill-ghost pill-sm" type="submit" name="action" value="decline">Decline</button>
           </form>
         </section>
@@ -74,12 +74,12 @@
 
     <c:if test="${empty error and not viewer.inCompany}">
       <section class="no-company">
-        <h2>You're not in a company yet</h2>
+        <h2>You are not a member of any company</h2>
         <p>
-          Create one to start recording decisions with your team, or ask a company admin to invite you.
+          Create a company to begin recording decisions with your team, or ask a company administrator to invite you.
           <c:choose>
-            <c:when test="${viewer.allowInvites}">Invites are on, so they'll appear here.</c:when>
-            <c:otherwise>Invites are off; you can turn them on in <a href="${pageContext.request.contextPath}/settings">Settings</a>.</c:otherwise>
+            <c:when test="${viewer.allowInvites}">Invitations you receive will appear here.</c:when>
+            <c:otherwise>Invitations are disabled. You can enable them in <a href="${pageContext.request.contextPath}/settings">Settings</a>.</c:otherwise>
           </c:choose>
         </p>
         <a class="pill pill-glow" href="${pageContext.request.contextPath}/companies/new">Create a company</a>
@@ -89,18 +89,18 @@
     <c:if test="${empty error and viewer.inCompany}">
       <%-- Proposed decisions on teams the viewer leads or approves for. --%>
       <section class="dash-review" aria-labelledby="reviewHeading">
-        <h2 id="reviewHeading">Needs your review</h2>
+        <h2 id="reviewHeading">Awaiting your approval</h2>
         <c:choose>
           <c:when test="${empty review}">
-            <p class="dash-empty">Nothing is waiting on you. Proposed decisions on teams you lead or approve will show up here.</p>
+            <p class="dash-empty">No decisions are awaiting your approval. Proposed decisions on teams where you are a lead or approver will appear here.</p>
           </c:when>
           <c:otherwise>
             <ul class="review-list">
               <c:forEach var="d" items="${review}">
                 <li class="review-card">
                   <p class="feed-project"><c:out value="${d.projectName}"/></p>
-                  <p class="review-title"><c:out value="${d.title}"/></p>
-                  <p class="feed-meta"><span><c:out value="${d.decidedBy}"/></span><span>Proposed <c:out value="${d.shortDate}"/></span></p>
+                  <p class="review-title"><a href="${pageContext.request.contextPath}/approvals?decision=${d.decisionId}"><c:out value="${d.title}"/></a></p>
+                  <p class="feed-meta"><span><c:out value="${d.decidedBy}"/></span><span>Proposed on <c:out value="${d.dateAtTime(userZone)}"/></span></p>
                 </li>
               </c:forEach>
             </ul>
@@ -120,8 +120,8 @@
               </c:choose>
               <c:if test="${not empty q or not empty tag}"> <span class="muted"><c:out value="${fn:length(feed)}"/> <c:out value="${fn:length(feed) == 1 ? 'decision' : 'decisions'}"/></span></c:if>
             </h2>
-            <nav class="segmented" aria-label="Whose decisions">
-              <%-- Preserve both filters when switching between Team and Mine. --%>
+            <nav class="segmented" aria-label="Decision filter">
+              <%-- Preserve both filters when switching between all decisions and the viewer's own. --%>
               <c:url var="teamUrl" value="/dashboard">
                 <c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if>
                 <c:if test="${not empty tag}"><c:param name="tag" value="${tag}"/></c:if>
@@ -131,8 +131,8 @@
                 <c:if test="${not empty q}"><c:param name="q" value="${q}"/></c:if>
                 <c:if test="${not empty tag}"><c:param name="tag" value="${tag}"/></c:if>
               </c:url>
-              <a href="${teamUrl}" class="${view eq 'team' ? 'is-active' : ''}" ${view eq 'team' ? 'aria-current="page"' : ''}>Team</a>
-              <a href="${mineUrl}" class="${view eq 'mine' ? 'is-active' : ''}" ${view eq 'mine' ? 'aria-current="page"' : ''}>Mine</a>
+              <a href="${teamUrl}" class="${view eq 'team' ? 'is-active' : ''}" ${view eq 'team' ? 'aria-current="page"' : ''}>All decisions</a>
+              <a href="${mineUrl}" class="${view eq 'mine' ? 'is-active' : ''}" ${view eq 'mine' ? 'aria-current="page"' : ''}>My decisions</a>
             </nav>
           </div>
 
@@ -141,39 +141,18 @@
               <p class="dash-empty">No decisions match the <c:out value="${tag}"/> tag<c:if test="${not empty q}"> and “<c:out value="${q}"/>”</c:if>.</p>
             </c:when>
             <c:when test="${empty feed and not empty q}">
-              <p class="dash-empty">No decisions match “<c:out value="${q}"/>”. Try a shorter or different word.</p>
+              <p class="dash-empty">No decisions match “<c:out value="${q}"/>”. Try a different search term.</p>
             </c:when>
             <c:when test="${empty feed and view eq 'mine'}">
-              <p class="dash-empty">You haven't recorded any decisions yet.</p>
+              <p class="dash-empty">You have not recorded any decisions.</p>
             </c:when>
             <c:when test="${empty feed}">
-              <p class="dash-empty">No decisions on your teams yet.</p>
+              <p class="dash-empty">No decisions have been recorded on your teams.</p>
             </c:when>
             <c:otherwise>
               <ol class="feed">
                 <c:forEach var="d" items="${feed}">
-                  <li class="feed-item feed-${d.status}">
-                    <p class="feed-project"><c:out value="${d.projectName}"/></p>
-                    <p class="feed-title"><c:out value="${d.title}"/></p>
-                    <c:if test="${not empty d.chosenOption}">
-                      <p class="feed-chose">Chose <span><c:out value="${d.chosenOption}"/></span></p>
-                    </c:if>
-                    <c:if test="${not empty d.replacedBy}">
-                      <p class="feed-replaced">Replaced by <span><c:out value="${d.replacedBy}"/></span></p>
-                    </c:if>
-                    <p class="feed-meta">
-                      <span class="status status-${d.status}"><c:out value="${d.status}"/></span>
-                      <span><c:out value="${d.decidedBy}"/></span>
-                      <span><c:out value="${d.shortDate}"/></span>
-                    </p>
-                    <c:if test="${not empty d.tags}">
-                      <ul class="tags">
-                        <c:forEach var="t" items="${d.tags}">
-                          <li class="tag tag-${t.color}"><c:out value="${t.name}"/></li>
-                        </c:forEach>
-                      </ul>
-                    </c:if>
-                  </li>
+                  <%@ include file="/WEB-INF/jspf/decision-item.jspf" %>
                 </c:forEach>
               </ol>
             </c:otherwise>
@@ -184,14 +163,14 @@
           <h2 id="projectsHeading">Your projects</h2>
           <c:choose>
             <c:when test="${empty projects}">
-              <p class="dash-empty">You're not on any project teams yet.</p>
+              <p class="dash-empty">You are not a member of any project team.</p>
             </c:when>
             <c:otherwise>
               <ul class="project-list">
                 <c:forEach var="p" items="${projects}">
                   <li class="project-row">
                     <div>
-                      <p class="project-name"><c:out value="${p.name}"/></p>
+                      <p class="project-name"><a href="${pageContext.request.contextPath}/projects?project=${p.projectId}"><c:out value="${p.name}"/></a></p>
                       <p class="project-meta">
                         <span class="project-status project-${p.status}"><c:out value="${p.status eq 'on_hold' ? 'on hold' : p.status}"/></span>
                         <span><c:out value="${p.teamName}"/></span>

@@ -1,0 +1,23 @@
+<%-- One decision in a list (dashboard feed, project page). The including page loops with var "d". --%>
+<li class="feed-item feed-${d.status}">
+  <p class="feed-project"><c:out value="${d.projectName}"/></p>
+  <p class="feed-title"><c:out value="${d.title}"/></p>
+  <c:if test="${not empty d.chosenOption}">
+    <p class="feed-chose"><c:out value="${d.status eq 'proposed' ? 'Proposed option:' : 'Selected option:'}"/> <span><c:out value="${d.chosenOption}"/></span></p>
+  </c:if>
+  <c:if test="${not empty d.replacedBy}">
+    <p class="feed-replaced">Replaced by <span><c:out value="${d.replacedBy}"/></span></p>
+  </c:if>
+  <p class="feed-meta">
+    <span class="status status-${d.status}"><c:out value="${d.status}"/></span>
+    <span><c:out value="${d.decidedBy}"/></span>
+    <span><c:out value="${d.dateTime(userZone)}"/></span>
+  </p>
+  <c:if test="${not empty d.tags}">
+    <ul class="tags">
+      <c:forEach var="t" items="${d.tags}">
+        <li class="tag tag-${t.color}"><c:out value="${t.name}"/></li>
+      </c:forEach>
+    </ul>
+  </c:if>
+</li>

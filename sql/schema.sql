@@ -297,7 +297,7 @@ INSERT INTO decision (decision_id, project_id, created_by, title, context, ratio
   (7, 4, 5,
    'Cache autotuning results per GPU architecture',
    'Tuning results are currently recomputed per device, and the build matrix now covers fourteen devices across four architectures with largely identical results inside each architecture.',
-   NULL,
+   'Results within an architecture are nearly identical, so caching per architecture collapses fourteen tuning runs into four with no measurable loss. A per-device cache would barely be reused across the build matrix.',
    'proposed', NULL, '2026-09-08 10:20:00'),
   (8, 5, 5,
    'Block driver releases on any regression suite failure',
@@ -317,7 +317,7 @@ INSERT INTO decision (decision_id, project_id, created_by, title, context, ratio
   (11, 8, 10,
    'Move to a directory-based coherence protocol',
    'Snoop traffic grows with the square of the core count, and the next part doubles core count again on the same interconnect budget.',
-   NULL,
+   'A directory scales with core count, while snooping would quadruple traffic on an interconnect that is not growing. The snoop filter only delays the same problem by one generation.',
    'proposed', NULL, '2026-09-14 13:35:00'),
   (12, 9, 11,
    'Schedule uplink slots with a deadline-first policy',
@@ -342,7 +342,7 @@ INSERT INTO decision (decision_id, project_id, created_by, title, context, ratio
   (16, 13, 16,
    'Capture row changes from the redo log instead of table triggers',
    'Triggers add write latency to every transaction on the primary store, and the capture logic has to be maintained per table.',
-   NULL,
+   'Reading the redo log removes the per-transaction trigger cost and the per-table capture code. The log format must be handled per database version, which is a smaller and more predictable maintenance cost.',
    'proposed', NULL, '2026-09-22 15:40:00');
 
 INSERT INTO decision_option (decision_id, option_num, label, description, is_chosen) VALUES
@@ -363,7 +363,7 @@ INSERT INTO decision_option (decision_id, option_num, label, description, is_cho
   (6,  1, 'Autotune at build time',                        'Cost moves into CI. Larger binary, no first-call penalty.',                   TRUE),
   (6,  2, 'Autotune at runtime on first launch',           'Adapts to any device, costs ~400ms on the first call per shape.',             FALSE),
   (6,  3, 'Fixed hand-written launch parameters',          'Predictable, leaves roughly 20 percent of throughput unclaimed.',             FALSE),
-  (7,  1, 'Cache per GPU architecture',                    'Fourteen devices collapse to four cache entries.',                            FALSE),
+  (7,  1, 'Cache per GPU architecture',                    'Fourteen devices collapse to four cache entries.',                            TRUE),
   (7,  2, 'Cache per exact device ID',                     'Most precise, almost no reuse across the build matrix.',                      FALSE),
   (7,  3, 'No cache',                                      'Simplest, keeps the full tuning cost on every build.',                        FALSE),
   (8,  1, 'Block the release on any failure',              'A failure stops the release. Requires trimming flaky tests first.',           TRUE),
@@ -374,7 +374,7 @@ INSERT INTO decision_option (decision_id, option_num, label, description, is_cho
   (10, 1, 'Power management first',                        'Unblocks display characterization afterward.',                                TRUE),
   (10, 2, 'Display pipeline first',                        'Larger team starts sooner, but stalls on unstable clocks.',                   FALSE),
   (11, 1, 'Keep the snooping protocol',                    'No redesign, snoop traffic grows with the square of core count.',             FALSE),
-  (11, 2, 'Directory-based coherence',                     'Scales with core count, costs directory storage and added latency.',          FALSE),
+  (11, 2, 'Directory-based coherence',                     'Scales with core count, costs directory storage and added latency.',          TRUE),
   (11, 3, 'Hybrid snoop filter in front of snooping',      'Smaller change, delays the problem by one generation.',                       FALSE),
   (12, 1, 'Round-robin allocation',                        'Fair on average, misses the voice latency bound under congestion.',           FALSE),
   (12, 2, 'Deadline-first allocation',                     'Protects bounded traffic, degrades best-effort traffic first.',               TRUE),
@@ -388,7 +388,7 @@ INSERT INTO decision_option (decision_id, option_num, label, description, is_cho
   (15, 2, 'GPU compute shaders',                           'Parallel and correct on self-intersecting paths. CPU path kept as fallback.', TRUE),
   (15, 3, 'Fixed-function graphics pipeline',              'Fast, wrong on self-intersecting and overlapping fills.',                     FALSE),
   (16, 1, 'Table triggers',                                'Works today, adds write latency and per-table maintenance.',                  FALSE),
-  (16, 2, 'Redo log reader',                               'No write-path cost, needs log format handling per version.',                  FALSE),
+  (16, 2, 'Redo log reader',                               'No write-path cost, needs log format handling per version.',                  TRUE),
   (16, 3, 'Periodic full snapshots',                       'Simple, cannot express row-level change events.',                             FALSE);
 
 INSERT INTO decision_link (decision_id, related_decision_id, link_type, created_at) VALUES
