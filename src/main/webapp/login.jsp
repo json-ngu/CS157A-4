@@ -6,6 +6,7 @@
 <div class="auth-light" aria-hidden="true"><div class="hero-beam"></div></div>
 <div class="auth-orb" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
+<canvas class="auth-canvas" aria-hidden="true"></canvas>
 
 <main class="auth-card">
   <a class="brand brand-lg" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
@@ -16,7 +17,7 @@
   </c:if>
   <%@ include file="/WEB-INF/jspf/notice.jspf" %>
   <c:if test="${param.registered eq 'true'}">
-    <p class="notice">Account created. You can log in now.</p>
+    <p class="notice">Your account has been created. Please log in.</p>
   </c:if>
 
   <form class="form" method="post" action="${pageContext.request.contextPath}/login">
@@ -35,9 +36,10 @@
     <button class="pill pill-glow pill-block" type="submit">Log in</button>
   </form>
 
-  <p class="auth-switch">Need an account? <a href="${pageContext.request.contextPath}/register">Create one</a></p>
+  <p class="auth-switch">Do not have an account? <a href="${pageContext.request.contextPath}/register">Create an account</a></p>
 </main>
 
 <script src="${pageContext.request.contextPath}/js/auth.js"></script>
+<script src="${pageContext.request.contextPath}/js/neural.js"></script>
 </body>
 </html>

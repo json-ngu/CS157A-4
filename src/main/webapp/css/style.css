@@ -1,3 +1,19 @@
+/* MindMerge styles. Dark only; every color is a token below or a literal next to its use.
+
+   Contents, in file order:
+     Tokens, Base, Film grain, Brand, Pill buttons
+     Landing page: Hero, Sections, Example record, Principles, Statement, Footer
+     Messages (flash notices and alerts)
+     Login and register, Register agreement line, Privacy Policy and Terms of Service
+     App shell (sidebar and main area), decision status chips
+     Landing scroll story (reveal animations)
+     Dashboard: header and search, Awaiting your approval, feed timeline, Your projects
+     Management pages: cards (.box), forms, tables, toggles (People, Teams, Settings)
+     Narrow screens (most phone layout rules)
+     Create decision, Approvals, Error page, Projects
+     App look: the page lighting, page headers, count badges and the one-time entrance
+*/
+
 /* Tokens (dark only) */
 
 :root {
@@ -270,6 +286,7 @@ a:hover {
 }
 
 .topbar {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -277,10 +294,16 @@ a:hover {
   padding: 28px var(--pad);
 }
 
+/* The section links start on the same left edge as the hero headline and text
+   (.hero-body / .hero-foot use the same clamp), but never closer than 190px so they clear
+   the logo on narrower screens. */
 .topbar-links {
+  position: absolute;
+  top: 50%;
+  left: max(clamp(72px, 14vw, 220px), 190px);
   display: flex;
-  gap: 8px;
-  padding-left: clamp(24px, 8vw, 140px);
+  gap: 32px;
+  transform: translateY(-50%);
 }
 
 .topbar-links a {
@@ -295,11 +318,8 @@ a:hover {
   color: var(--text);
 }
 
-.topbar-links a:not(:last-child)::after {
-  content: ",";
-}
-
 .topbar-actions {
+  grid-column: 3;
   display: flex;
   gap: 10px;
 }
@@ -659,7 +679,7 @@ a:hover {
   margin: 0 auto;
   padding: 48px var(--pad) 64px;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 40px;
   border-top: 1px solid var(--line);
   font-size: 14px;
@@ -720,10 +740,6 @@ a:hover {
   border: 1px solid rgba(180, 144, 242, 0.35);
   border-radius: 10px;
   font-size: 14px;
-}
-
-.empty {
-  color: var(--muted);
 }
 
 /* Login and register */
@@ -842,6 +858,16 @@ body.auth .grain {
   }
 }
 
+/* "Neural light flow" (js/neural.js, WebGL): behind the card, above the light and grain. The
+   canvas renders at half size and is stretched to the window; the light is soft, so it stays smooth. */
+.auth-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-light,
   .auth-light .hero-beam,
@@ -868,11 +894,6 @@ body.auth .grain {
   font-weight: 300;
   letter-spacing: -0.04em;
   line-height: 1.05;
-}
-
-.auth-note {
-  margin-top: 8px;
-  color: var(--muted);
 }
 
 .auth-card .alert,
@@ -1011,14 +1032,160 @@ body.auth .grain {
   margin-top: 22px;
   color: var(--muted);
   font-size: 14px;
+  text-align: center;
+}
+
+/* Register: the agreement line under Create account. */
+.auth-legal {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.auth-legal a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+  text-underline-offset: 2px;
+}
+
+.auth-legal a:hover {
+  color: var(--accent);
+}
+
+/* Privacy Policy and Terms of Service: a quiet reading column under a small top bar. */
+body.legal {
+  background:
+    radial-gradient(40% 30% at 85% 0%, rgba(112, 55, 183, 0.18), transparent 70%),
+    var(--bg);
+}
+
+.legal-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 28px var(--pad);
+}
+
+.legal-nav {
+  display: flex;
+  gap: 28px;
+}
+
+.legal-nav a {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.legal-nav a:hover,
+.legal-nav a[aria-current="page"] {
+  color: var(--text);
+}
+
+.legal-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px var(--pad) 72px;
+  line-height: 1.65;
+}
+
+.legal-page h1 {
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.legal-date {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.legal-notice {
+  margin: 28px 0 8px;
+  padding: 16px 20px;
+  color: var(--text);
+  background: #13111c;
+  border: 1px solid rgba(180, 144, 242, 0.3);
+  border-radius: 12px;
+  font-size: 14.5px;
+}
+
+.legal-page h2 {
+  margin: 40px 0 10px;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.legal-page p,
+.legal-page li {
+  color: rgba(243, 241, 246, 0.86);
+  font-size: 15px;
+}
+
+.legal-page p + p {
+  margin-top: 12px;
+}
+
+.legal-page ul {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+
+.legal-page a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-page code {
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px var(--pad) 56px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.legal-footer a {
+  color: var(--text);
+}
+
+.legal-footer a:hover {
+  color: var(--accent);
 }
 
 /* App shell */
 
 .app {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 100vh;
+  background: #050409;
 }
 
 .sidebar {
@@ -1029,8 +1196,16 @@ body.auth .grain {
   flex-direction: column;
   gap: 32px;
   padding: 24px 18px;
-  background: var(--surface);
-  border-right: 1px solid var(--line);
+  /* A little of the beam at the top and the blue glow at the bottom. */
+  background:
+    radial-gradient(120% 240px at 0% 0%, rgba(112, 55, 183, 0.24), transparent 70%),
+    radial-gradient(120% 260px at 0% 100%, rgba(52, 96, 210, 0.12), transparent 70%),
+    #0b0a12;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.sidebar .logo {
+  filter: drop-shadow(0 0 10px rgba(180, 144, 242, 0.55));
 }
 
 .sidebar .brand {
@@ -1057,9 +1232,10 @@ body.auth .grain {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* The current page's link: flat, one solid purple, like the cards. */
 .side-nav a.is-active {
   color: var(--text);
-  background: rgba(112, 55, 183, 0.32);
+  background: rgba(112, 55, 183, 0.4);
 }
 
 /* Not built yet: same shape as a nav link, greyed out and not clickable. */
@@ -1069,7 +1245,7 @@ body.auth .grain {
   justify-content: space-between;
   gap: 8px;
   padding: 8px 14px;
-  color: rgba(155, 151, 166, 0.55);
+  color: #85818f; /* dimmer than real links but readable: about 5:1 on the sidebar */
   font-size: 12.5px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1114,68 +1290,13 @@ body.auth .grain {
   font-size: 12px;
 }
 
+/* Spans to the window edge so the page lighting does too; its children carry the content width
+   (.app-main.manage > *, .app-main.dash > *). */
 .app-main {
+  position: relative;
+  isolation: isolate;
   min-width: 0;
   padding: 40px 48px 64px;
-}
-
-.page-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 28px;
-}
-
-.page-head h1 {
-  font-size: 40px;
-  font-weight: 300;
-  letter-spacing: -0.04em;
-}
-
-.page-count {
-  color: var(--muted);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.decisions {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.decisions th {
-  padding: 12px 14px;
-  text-align: left;
-  color: var(--muted);
-  border-bottom: 1px solid var(--line);
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.decisions td {
-  padding: 18px 14px;
-  vertical-align: top;
-  border-bottom: 1px solid var(--line);
-}
-
-.decisions tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.decision-cell {
-  width: 55%;
-}
-
-.decision-project {
-  margin-bottom: 2px;
-  color: var(--muted);
-  font-size: 12.5px;
 }
 
 /* Decision status chips. */
@@ -1203,33 +1324,6 @@ body.auth .grain {
   color: var(--muted);
   background: rgba(255, 255, 255, 0.06);
   text-decoration: line-through;
-}
-
-.decision-title {
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
-.decision-why {
-  margin-top: 4px;
-  max-width: 70ch;
-}
-
-.chose {
-  color: var(--accent);
-  font-weight: 500;
-}
-
-.chose.chose-none {
-  color: var(--muted);
-  font-weight: 400;
-}
-
-.date {
-  white-space: nowrap;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
 }
 
 /* Landing scroll story. Every "before" state is scoped to .motion, which js/scroll.js
@@ -1495,10 +1589,6 @@ body.auth .grain {
   white-space: nowrap;
 }
 
-.dash {
-  max-width: 1240px;
-}
-
 .dash h2 {
   font-size: 15px;
   font-weight: 500;
@@ -1554,14 +1644,15 @@ body.auth .grain {
   font-size: 14px;
 }
 
-/* Needs your review */
+/* Awaiting your approval */
 
+/* The one section that asks for action has an amber border. */
 .dash-review {
   margin-bottom: 40px;
   padding: 22px 24px;
-  background: rgba(112, 55, 183, 0.08);
-  border: 1px solid rgba(180, 144, 242, 0.2);
-  border-radius: 8px;
+  background: #13111c;
+  border: 1px solid rgba(224, 183, 90, 0.3);
+  border-radius: 12px;
 }
 
 .dash-review h2 {
@@ -1579,10 +1670,16 @@ body.auth .grain {
 
 .review-card {
   padding: 16px 18px;
-  background: var(--surface);
+  background: #13111c;
   border: 1px solid var(--line);
   border-left: 2px solid #e0b75a;
-  border-radius: 6px;
+  border-radius: 10px;
+  transition: border-color 150ms linear;
+}
+
+.review-card:hover {
+  border-color: rgba(224, 183, 90, 0.45);
+  border-left-color: #e0b75a;
 }
 
 .review-title {
@@ -1633,10 +1730,22 @@ body.auth .grain {
   background: rgba(112, 55, 183, 0.45);
 }
 
+/* The decision feed is a lit timeline: one beam line runs through every status dot. */
 .feed {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.feed::before {
+  content: "";
+  position: absolute;
+  top: 26px;
+  bottom: 24px;
+  left: 5px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(180, 144, 242, 0.75), rgba(90, 120, 220, 0.35) 70%, transparent);
 }
 
 .feed-item {
@@ -1655,17 +1764,18 @@ body.auth .grain {
   height: 7px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 10px rgba(180, 144, 242, 0.7);
+  /* The dark ring cuts the timeline line around each dot. */
+  box-shadow: 0 0 0 3px #08070c, 0 0 12px rgba(180, 144, 242, 0.85);
 }
 
 .feed-proposed::before {
   background: #e0b75a;
-  box-shadow: 0 0 10px rgba(224, 183, 90, 0.6);
+  box-shadow: 0 0 0 3px #08070c, 0 0 12px rgba(224, 183, 90, 0.75);
 }
 
 .feed-superseded::before {
   background: var(--muted);
-  box-shadow: none;
+  box-shadow: 0 0 0 3px #08070c;
 }
 
 .feed-project {
@@ -1737,9 +1847,9 @@ body.auth .grain {
 
 .dash-projects {
   padding: 20px 22px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: #13111c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
 }
 
 .dash-projects h2 {
@@ -1814,10 +1924,6 @@ body.auth .grain {
   display: none !important;
 }
 
-.manage {
-  max-width: 1080px;
-}
-
 .manage-head {
   display: flex;
   flex-wrap: wrap;
@@ -1849,12 +1955,13 @@ body.auth .grain {
   margin-bottom: 20px;
 }
 
+/* Cards: flat, one solid violet-grey a step lighter than the page, and a hairline border. */
 .box {
   margin-bottom: 24px;
   padding: 22px 24px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: #13111c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
 }
 
 .box > .pill {
@@ -2327,37 +2434,6 @@ body.auth .grain {
   .app-main {
     padding: 28px var(--pad) 48px;
   }
-
-  .decisions thead {
-    display: none;
-  }
-
-  .decisions tr,
-  .decisions td {
-    display: block;
-  }
-
-  .decisions tr {
-    padding: 16px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .decisions td {
-    width: auto;
-    padding: 0;
-    border: none;
-  }
-
-  .decisions td + td {
-    margin-top: 4px;
-    font-size: 13px;
-  }
-
-  .decisions td[data-label]::before {
-    content: attr(data-label) ": ";
-    color: var(--muted);
-    font-weight: 400;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2438,7 +2514,7 @@ body.auth .grain {
     width: 100%;
   }
 }
-/* New decision: the form sits directly in its card, and options are grouped in a fieldset. */
+/* Create decision: the form sits directly in its card, and options are grouped in a fieldset. */
 .decision-form {
   grid-template-columns: minmax(0, 1fr); /* long project names can't widen the card on phones */
   margin-top: 0;
@@ -2471,7 +2547,7 @@ body.auth .grain {
   display: grid;
   margin-top: 12px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--line);
   border-radius: 10px;
 }
@@ -2515,4 +2591,422 @@ body.auth .grain {
 
 .add-option {
   margin: 14px 0 24px;
+}
+
+/* Approvals: reviewing one decision. */
+.back-link {
+  margin: 0 0 18px;
+  font-size: 13px;
+}
+
+.back-link a {
+  color: var(--muted);
+}
+
+.back-link a:hover {
+  color: var(--text);
+}
+
+.review-heading {
+  margin-top: 4px;
+}
+
+.prose {
+  margin: 10px 0 0;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.approve-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.approve-form .panel-note {
+  margin: 0;
+}
+
+.choice-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One option on the review page; the author's selection is outlined in the accent color. */
+.choice {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.choice.is-selected {
+  background: rgba(180, 144, 242, 0.08);
+  border-color: var(--accent);
+}
+
+.choice-body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.choice-label {
+  font-weight: 500;
+}
+
+.choice-description {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.selected-badge {
+  flex: none;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+}
+
+/* Create decision: the radio that selects the recommended option, and the rationale below the options. */
+.option-box label.select-option {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.select-option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.option-box:has(.select-option input:checked) {
+  background: rgba(180, 144, 242, 0.08);
+  border-color: var(--accent);
+}
+
+.decision-form > label[for="rationale"] {
+  margin-top: 4px;
+}
+
+.decision-form > textarea#rationale {
+  margin-bottom: 24px;
+}
+
+.review-title a {
+  color: inherit;
+}
+
+.review-title a:hover {
+  color: var(--accent);
+}
+
+/* Error page (404, 405, 500): reuses the login card. */
+.error-text {
+  margin: 12px 0 28px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* Projects: the list, one project's page, and the create/manage forms. */
+.row-title a,
+.project-name a {
+  color: inherit;
+}
+
+.row-title a:hover,
+.project-name a:hover {
+  color: var(--accent);
+}
+
+.project-form {
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 14px;
+}
+
+.project-form .select {
+  width: 100%;
+  height: 46px;
+  padding-left: 14px;
+}
+
+.project-form > .pill {
+  justify-self: start;
+  margin-top: 8px;
+}
+
+/* On a project's own page every decision is in that project, so its name is not repeated. */
+.project-decisions .feed-project {
+  display: none;
+}
+
+.project-decisions .feed-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.manage-head .project-meta {
+  gap: 4px 16px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------------
+   App look: the signed-in pages borrow the landing page's light.
+   The main area (everything beside the sidebar) is lit like the hero: a soft purple
+   beam on the right of the page header, fading down the page, and a cool blue glow
+   rising from the lower left. The surfaces themselves (.app, .sidebar, .box …) are set
+   in their own sections above. Every animation here is off under reduced motion.
+   ------------------------------------------------------------------ */
+
+/* Ambient light that stays put while the page scrolls: blue from the lower left,
+   a little violet across the top. */
+.app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 55% at 32% 105%, rgba(52, 96, 210, 0.3), transparent 72%),
+    radial-gradient(30% 45% at 18% 75%, rgba(40, 80, 190, 0.14), transparent 70%),
+    radial-gradient(60% 35% at 70% 0%, rgba(112, 55, 183, 0.14), transparent 70%);
+}
+
+/* The beam: the hero's light behind the page header, scrolling with the page and
+   fading out further down so the content below stays easy to read. */
+.app-main.manage > * {
+  max-width: 1080px;
+}
+
+.app-main.dash > * {
+  max-width: 1240px;
+}
+
+.app-main::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: 0;
+  left: 0;
+  height: 760px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(14% 60% at 78% 32%, rgba(222, 208, 252, 0.34), transparent 75%),
+    radial-gradient(24% 75% at 78% 38%, rgba(160, 110, 236, 0.4), transparent 75%),
+    radial-gradient(46% 95% at 78% 42%, rgba(112, 55, 183, 0.42), transparent 75%);
+  filter: blur(18px);
+  -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+}
+
+/* Film grain over the lit part only. */
+.app-main::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 700px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  -webkit-mask-image: radial-gradient(45% 80% at 78% 35%, #000, transparent 75%);
+  mask-image: radial-gradient(45% 80% at 78% 35%, #000, transparent 75%);
+}
+
+/* Specks of light drawn by js/sparkle.js: fixed to the window beside the sidebar, behind all
+   content, so they show through the open space on every part of the page as it scrolls. Added as
+   the last child of .app-main, so it opts out of the content width and the entrance animation. */
+.app-main > .app-sparkle {
+  position: fixed;
+  top: 0;
+  left: 240px; /* the sidebar's width (.app grid) */
+  z-index: -1;
+  /* A canvas keeps its default 300x150 size unless given one; % is of the window here. */
+  width: calc(100% - 240px);
+  max-width: none;
+  height: 100%;
+  pointer-events: none;
+  animation: none;
+}
+
+/* On phones the sidebar sits above the page, so the specks use the full width, and the sidebar is
+   lifted above them so none drift over the nav links. */
+@media (max-width: 820px) {
+  .app-main > .app-sparkle {
+    left: 0;
+    width: 100%;
+  }
+
+  .sidebar {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Page header: no box, just large light type over the beam. */
+.app-main > .dash-head,
+.app-main > .manage-head {
+  min-height: 210px;
+  align-items: flex-end;
+  margin-bottom: 36px;
+  padding: 36px 0 8px;
+}
+
+.app-main > .dash-head h1,
+.app-main > .manage-head h1 {
+  font-size: clamp(40px, 4.6vw, 64px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+/* Under a "Back to ..." link the header needs no extra height. */
+.app-main > .back-link + .manage-head {
+  min-height: 0;
+  padding-top: 20px;
+}
+
+/* Long decision and project names get a slightly smaller display size. */
+.app-main > .manage-head h1.review-heading {
+  font-size: clamp(32px, 3.6vw, 50px);
+  line-height: 1.05;
+}
+
+.app-main > .dash-head .dash-sub,
+.app-main > .manage-head .dash-sub {
+  margin-top: 12px;
+}
+
+/* Keep the title and subtitle clear of the brightest part of the beam. */
+.app-main > .dash-head > div:first-child,
+.app-main > .manage-head > div:first-child {
+  max-width: min(680px, 62%);
+}
+
+/* Controls that sit over the light get a darker glass so they stay legible. */
+.app-main > .dash-head input,
+.app-main > .dash-head select,
+.app-main > .manage-head .select {
+  background-color: rgba(12, 10, 20, 0.62);
+  border-color: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* A count after a heading ("Members 5") sits in a small grey pill, like the sidebar's Soon badge. */
+.count {
+  display: inline-block;
+  min-width: 22px;
+  margin-left: 8px;
+  padding: 1px 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  vertical-align: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Form fields read a touch lighter on the cards. */
+.box .form input,
+.box .form textarea,
+.box .form .select,
+.box .input {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Placeholders carry instructions, so they use the muted grey (about 6:1) rather than
+   the browser default (#757575, 3.6:1 on these fields). */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* One entrance per page: the light comes up, then the sections rise in turn. */
+@media (prefers-reduced-motion: no-preference) {
+  .app-main::before {
+    animation:
+      band-light 1.1s ease-out both,
+      beam-glow 5s ease-in-out 1.1s infinite alternate;
+  }
+
+  .app-main > * {
+    animation: app-rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .app-main > :nth-child(2) { animation-delay: 80ms; }
+  .app-main > :nth-child(3) { animation-delay: 160ms; }
+  .app-main > :nth-child(4) { animation-delay: 240ms; }
+  .app-main > :nth-child(5) { animation-delay: 320ms; }
+  .app-main > :nth-child(n + 6) { animation-delay: 400ms; }
+}
+
+@keyframes band-light {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes app-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* On phones the beam sits at the far right edge, clear of the text. */
+@media (max-width: 820px) {
+  .app-main::before {
+    height: 520px;
+    background:
+      radial-gradient(18% 55% at 96% 25%, rgba(222, 208, 252, 0.26), transparent 75%),
+      radial-gradient(45% 75% at 96% 30%, rgba(112, 55, 183, 0.4), transparent 75%);
+  }
+
+  .app-main > .dash-head,
+  .app-main > .manage-head {
+    min-height: 0;
+    padding-top: 12px;
+  }
+
+  .app-main > .dash-head > div:first-child,
+  .app-main > .manage-head > div:first-child {
+    max-width: none;
+  }
 }

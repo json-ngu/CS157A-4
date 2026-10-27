@@ -1,6 +1,6 @@
 <aside class="sidebar">
   <a class="brand" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
-  <%-- Each page sets "activeNav" (dashboard, people, teams, settings) to highlight its link.
+  <%-- Each page sets "activeNav" (dashboard, create-decision, projects, approvals, people, teams, settings) to highlight its link.
        Placeholders for features teammates will build: to turn one on, replace its
        <span class="nav-soon">...</span> with a link, e.g.
        <a href="${pageContext.request.contextPath}/projects">Projects</a>
@@ -10,11 +10,13 @@
   <nav class="side-nav" aria-label="Main">
     <a class="${activeNav eq 'dashboard' ? 'is-active' : ''}" ${activeNav eq 'dashboard' ? 'aria-current="page"' : ''}
        href="${pageContext.request.contextPath}/dashboard">Dashboard</a>
-    <a class="${activeNav eq 'new-decision' ? 'is-active' : ''}" ${activeNav eq 'new-decision' ? 'aria-current="page"' : ''}
-       href="${pageContext.request.contextPath}/decisions/new">New decision</a>
+    <a class="${activeNav eq 'create-decision' ? 'is-active' : ''}" ${activeNav eq 'create-decision' ? 'aria-current="page"' : ''}
+       href="${pageContext.request.contextPath}/decisions/create">Create decision</a>
     <span class="nav-soon" aria-disabled="true">Decisions <span class="soon">Soon</span></span>
-    <span class="nav-soon" aria-disabled="true">Projects <span class="soon">Soon</span></span>
-    <span class="nav-soon" aria-disabled="true">Approvals <span class="soon">Soon</span></span>
+    <a class="${activeNav eq 'projects' ? 'is-active' : ''}" ${activeNav eq 'projects' ? 'aria-current="page"' : ''}
+       href="${pageContext.request.contextPath}/projects">Projects</a>
+    <a class="${activeNav eq 'approvals' ? 'is-active' : ''}" ${activeNav eq 'approvals' ? 'aria-current="page"' : ''}
+       href="${pageContext.request.contextPath}/approvals">Approvals</a>
 
     <c:if test="${viewer.admin}">
       <p class="nav-group">Admin</p>
@@ -43,3 +45,5 @@
     <p class="credit">CS157A Team 4, SJSU</p>
   </div>
 </aside>
+<%-- Every signed-in page includes the sidebar, so the beam's specks of light load here. --%>
+<script src="${pageContext.request.contextPath}/js/sparkle.js" defer></script>
