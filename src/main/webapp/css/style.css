@@ -2886,6 +2886,9 @@ body.legal {
 
 .app-main > .dash-head h1,
 .app-main > .manage-head h1 {
+  /* Pull left by the letters' built-in side space so the visible first letter lines up with the
+     subtitle and the cards below (optical alignment; about 2.6px at 64px). */
+  margin-left: -0.04em;
   font-size: clamp(40px, 4.6vw, 64px);
   font-weight: 300;
   line-height: 1;
