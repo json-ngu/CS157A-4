@@ -1,24 +1,23 @@
 DROP DATABASE IF EXISTS mindmerge_db;
-CREATE DATABASE mindmerge_db CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE DATABASE mindmerge_db;
 USE mindmerge_db;
 
 CREATE TABLE company (
   company_id    INT           AUTO_INCREMENT PRIMARY KEY,
   name          VARCHAR(120)  NOT NULL,
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE `user` (
   user_id       INT           AUTO_INCREMENT PRIMARY KEY,
   full_name     VARCHAR(120)  NOT NULL,
-  email         VARCHAR(180)  NOT NULL,
+  email         VARCHAR(180)  NOT NULL UNIQUE,
   password_hash VARCHAR(255)  NOT NULL,
   salt          VARCHAR(80)   NOT NULL,
   status        ENUM('active', 'deactivated', 'invited') NOT NULL DEFAULT 'active',
   allow_invites BOOLEAN       NOT NULL DEFAULT TRUE,
-  created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT uq_user_email UNIQUE (email)
-) ENGINE = InnoDB;
+  created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE employee (
   user_id       INT           NOT NULL,
@@ -27,9 +26,9 @@ CREATE TABLE employee (
   joined_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   left_at       DATETIME,     -- set when removed; the row is kept for history
   PRIMARY KEY (user_id, company_id),
-  CONSTRAINT fk_employee_user    FOREIGN KEY (user_id)    REFERENCES `user` (user_id),
-  CONSTRAINT fk_employee_company FOREIGN KEY (company_id) REFERENCES company (company_id)
-) ENGINE = InnoDB;
+  FOREIGN KEY (user_id)    REFERENCES `user` (user_id),
+  FOREIGN KEY (company_id) REFERENCES company (company_id)
+);
 
 -- Every invite ever sent. Rows are never deleted; responding only changes status.
 CREATE TABLE company_invite (
@@ -41,19 +40,18 @@ CREATE TABLE company_invite (
   status        ENUM('pending', 'accepted', 'declined', 'cancelled') NOT NULL DEFAULT 'pending',
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   responded_at  DATETIME,
-  CONSTRAINT fk_invite_company FOREIGN KEY (company_id) REFERENCES company (company_id),
-  CONSTRAINT fk_invite_user    FOREIGN KEY (user_id)    REFERENCES `user` (user_id),
-  CONSTRAINT fk_invite_by      FOREIGN KEY (invited_by) REFERENCES `user` (user_id),
-  INDEX idx_invite_user_status (user_id, status)
-) ENGINE = InnoDB;
+  FOREIGN KEY (company_id) REFERENCES company (company_id),
+  FOREIGN KEY (user_id)    REFERENCES `user` (user_id),
+  FOREIGN KEY (invited_by) REFERENCES `user` (user_id)
+);
 
 CREATE TABLE team (
   team_id       INT           AUTO_INCREMENT PRIMARY KEY,
   company_id    INT           NOT NULL,
   name          VARCHAR(150)  NOT NULL,
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_team_company FOREIGN KEY (company_id) REFERENCES company (company_id)
-) ENGINE = InnoDB;
+  FOREIGN KEY (company_id) REFERENCES company (company_id)
+);
 
 CREATE TABLE team_member (
   user_id       INT           NOT NULL,
@@ -62,9 +60,9 @@ CREATE TABLE team_member (
   joined_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   left_at       DATETIME,     -- set when removed; the row is kept for history
   PRIMARY KEY (user_id, team_id),
-  CONSTRAINT fk_team_member_user FOREIGN KEY (user_id) REFERENCES `user` (user_id),
-  CONSTRAINT fk_team_member_team FOREIGN KEY (team_id) REFERENCES team (team_id)
-) ENGINE = InnoDB;
+  FOREIGN KEY (user_id) REFERENCES `user` (user_id),
+  FOREIGN KEY (team_id) REFERENCES team (team_id)
+);
 
 CREATE TABLE project (
   project_id    INT           AUTO_INCREMENT PRIMARY KEY,
@@ -73,8 +71,8 @@ CREATE TABLE project (
   description   TEXT,
   status        ENUM('active', 'archived', 'on_hold', 'completed') NOT NULL DEFAULT 'active',
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_project_team FOREIGN KEY (team_id) REFERENCES team (team_id)
-) ENGINE = InnoDB;
+  FOREIGN KEY (team_id) REFERENCES team (team_id)
+);
 
 CREATE TABLE decision (
   decision_id   INT           AUTO_INCREMENT PRIMARY KEY,
@@ -86,11 +84,10 @@ CREATE TABLE decision (
   status        ENUM('proposed', 'decided', 'superseded') NOT NULL DEFAULT 'proposed',
   decided_at    DATETIME,
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_decision_project FOREIGN KEY (project_id) REFERENCES project (project_id),
-  CONSTRAINT fk_decision_user    FOREIGN KEY (created_by) REFERENCES `user` (user_id),
-  INDEX idx_decision_status_decided (status, decided_at),
+  FOREIGN KEY (project_id) REFERENCES project (project_id),
+  FOREIGN KEY (created_by) REFERENCES `user` (user_id),
   FULLTEXT INDEX ft_decision_text (title, context, rationale)
-) ENGINE = InnoDB;
+);
 
 CREATE TABLE decision_option (
   decision_id   INT           NOT NULL,
@@ -99,9 +96,8 @@ CREATE TABLE decision_option (
   description   TEXT,
   is_chosen     BOOLEAN       NOT NULL DEFAULT FALSE,
   PRIMARY KEY (decision_id, option_num),
-  CONSTRAINT fk_option_decision FOREIGN KEY (decision_id) REFERENCES decision (decision_id)
-    ON DELETE CASCADE
-) ENGINE = InnoDB;
+  FOREIGN KEY (decision_id) REFERENCES decision (decision_id)
+);
 
 CREATE TABLE decision_link (
   decision_id         INT       NOT NULL,
@@ -109,24 +105,23 @@ CREATE TABLE decision_link (
   link_type           ENUM('supersedes', 'depends_on', 'relates_to') NOT NULL,
   created_at          DATETIME  NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (decision_id, related_decision_id),
-  CONSTRAINT fk_link_decision FOREIGN KEY (decision_id)         REFERENCES decision (decision_id),
-  CONSTRAINT fk_link_related  FOREIGN KEY (related_decision_id) REFERENCES decision (decision_id),
-  CONSTRAINT chk_link_not_self CHECK (decision_id <> related_decision_id)
-) ENGINE = InnoDB;
+  FOREIGN KEY (decision_id)         REFERENCES decision (decision_id),
+  FOREIGN KEY (related_decision_id) REFERENCES decision (decision_id),
+  CHECK (decision_id <> related_decision_id)
+);
 
 CREATE TABLE tag (
   tag_id        INT           AUTO_INCREMENT PRIMARY KEY,
-  name          VARCHAR(100)  NOT NULL,
-  CONSTRAINT uq_tag_name UNIQUE (name)
-) ENGINE = InnoDB;
+  name          VARCHAR(100)  NOT NULL UNIQUE
+);
 
 CREATE TABLE decision_tag (
   decision_id   INT           NOT NULL,
   tag_id        INT           NOT NULL,
   PRIMARY KEY (decision_id, tag_id),
-  CONSTRAINT fk_decision_tag_decision FOREIGN KEY (decision_id) REFERENCES decision (decision_id),
-  CONSTRAINT fk_decision_tag_tag      FOREIGN KEY (tag_id)      REFERENCES tag (tag_id)
-) ENGINE = InnoDB;
+  FOREIGN KEY (decision_id) REFERENCES decision (decision_id),
+  FOREIGN KEY (tag_id)      REFERENCES tag (tag_id)
+);
 
 CREATE TABLE comment (
   comment_id    INT           AUTO_INCREMENT PRIMARY KEY,
@@ -134,9 +129,9 @@ CREATE TABLE comment (
   user_id       INT           NOT NULL,
   body          TEXT          NOT NULL,
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_comment_decision FOREIGN KEY (decision_id) REFERENCES decision (decision_id),
-  CONSTRAINT fk_comment_user     FOREIGN KEY (user_id)     REFERENCES `user` (user_id)
-) ENGINE = InnoDB;
+  FOREIGN KEY (decision_id) REFERENCES decision (decision_id),
+  FOREIGN KEY (user_id)     REFERENCES `user` (user_id)
+);
 
 CREATE TABLE audit_log (
   log_id        INT           AUTO_INCREMENT PRIMARY KEY,
@@ -146,10 +141,9 @@ CREATE TABLE audit_log (
   entity_type   VARCHAR(80)   NOT NULL,
   entity_id     INT           NOT NULL,
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_audit_user    FOREIGN KEY (user_id)    REFERENCES `user` (user_id),
-  CONSTRAINT fk_audit_company FOREIGN KEY (company_id) REFERENCES company (company_id),
-  INDEX idx_audit_created (created_at)
-) ENGINE = InnoDB;
+  FOREIGN KEY (user_id)    REFERENCES `user` (user_id),
+  FOREIGN KEY (company_id) REFERENCES company (company_id)
+);
 
 INSERT INTO company (company_id, name, created_at) VALUES
   (1,  'MindMerge',     '2026-01-12 09:00:00'),
@@ -164,9 +158,9 @@ INSERT INTO company (company_id, name, created_at) VALUES
   (10, 'Salesforce',    '2026-04-21 16:25:00');
 
 INSERT INTO `user` (user_id, full_name, email, password_hash, salt, status, created_at) VALUES
-  (1,  'Jason Nguyen',    'jason.nguyen06@sjsu.edu',     'pbkdf2$8kQw1fLZr2aH9vTnXc4bYe6dUg0sPmJl', 'a91f3c7d5e208b46', 'active',      '2026-01-12 09:05:00'),
-  (2,  'Andrew Khoi Luu', 'andrewkhoi.luu@sjsu.edu',     'pbkdf2$Rt7yUi9oPl2kJh4gFd6sAz8xCv0bNm3q', 'c44e9a1b7f36d250', 'active',      '2026-01-12 09:40:00'),
-  (3,  'Hailey Liu',      'hailey.liu01@sjsu.edu',       'pbkdf2$Zx3cVb5nMa7sDf9gHj1kLp2qWe4rTy6u', 'f17b2d8c0a95e634', 'active',      '2026-01-12 09:02:00'),
+  (1,  'Jason Nguyen',    'jason.nguyen06@sjsu.edu',     'pbkdf2$210000$tuFcYDhfA1uG/M1lKxQ6ko3bR08UOwNn+vH1vFTSOm4=', 'wV4kL9TFQh8/OhE9m39LDg==', 'active',      '2026-01-12 09:05:00'),
+  (2,  'Andrew Khoi Luu', 'andrewkhoi.luu@sjsu.edu',     'pbkdf2$210000$44z4rNwTlBPm75OSMWMOqQmSvXmDxE4xRWa94J8WRCI=', 'eflMOvaucZXW0vvUnoErxg==', 'active',      '2026-01-12 09:40:00'),
+  (3,  'Hailey Liu',      'hailey.liu01@sjsu.edu',       'pbkdf2$210000$PgTK3pg/06dRoRRMcNzW59p5CCBc9jVnXWmWZt87oos=', 'PjxQPk6D1QHQUQqraxGivw==', 'active',      '2026-01-12 09:02:00'),
   (4,  'Priya Raman',     'priya.raman@nvidia.com',      'pbkdf2$Qa2wSx4eDc6rFv8tGb0yHn1uJm3iKl5o', 'b58d4e1f9c27a063', 'active',      '2026-01-19 10:35:00'),
   (5,  'Marcus Webb',     'marcus.webb@nvidia.com',      'pbkdf2$Pl9okM7nJi5buH3vyG1cfT0xdR2zsE4w', '2e07c6b3d184f9a5', 'active',      '2026-01-20 14:50:00'),
   (6,  'Dana Okafor',     'dana@okaforadvisory.com',     'pbkdf2$Mn6bVc4xZl2kSj0hGf8dAs5pOi3uYt1r', '9a3f5107e62bc8d4', 'active',      '2026-01-26 08:20:00'),
@@ -474,9 +468,3 @@ INSERT INTO audit_log (log_id, user_id, company_id, operation, entity_type, enti
   (19, 14, 8, 'create',        'decision', 14, '2026-04-06 11:30:00'),
   (20, 12, 8, 'update',        'decision', 14, '2026-04-09 13:45:00'),
   (21, 15, 9, 'create',        'decision', 15, '2026-04-15 09:20:00');
-
--- Demo logins for the team: real PBKDF2-SHA256 hashes replace the seed placeholders
--- for these three accounts only. The plain passwords are not stored anywhere in the repo.
-UPDATE `user` SET password_hash = 'pbkdf2$210000$tuFcYDhfA1uG/M1lKxQ6ko3bR08UOwNn+vH1vFTSOm4=', salt = 'wV4kL9TFQh8/OhE9m39LDg==' WHERE user_id = 1;  -- Jason Nguyen
-UPDATE `user` SET password_hash = 'pbkdf2$210000$44z4rNwTlBPm75OSMWMOqQmSvXmDxE4xRWa94J8WRCI=', salt = 'eflMOvaucZXW0vvUnoErxg==' WHERE user_id = 2;  -- Andrew Khoi Luu
-UPDATE `user` SET password_hash = 'pbkdf2$210000$PgTK3pg/06dRoRRMcNzW59p5CCBc9jVnXWmWZt87oos=', salt = 'PjxQPk6D1QHQUQqraxGivw==' WHERE user_id = 3;  -- Hailey Liu
