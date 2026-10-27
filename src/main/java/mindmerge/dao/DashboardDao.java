@@ -49,6 +49,11 @@ public class DashboardDao {
 
     private static final String FIND_REVIEWABLE = REVIEWABLE + "AND d.decision_id = ?";
 
+    // The viewer's own decisions that are still waiting for a lead or approver.
+    // Parameters: the viewer's id (in DECISIONS), then the viewer's id again.
+    private static final String MY_IN_REVIEW =
+        DECISIONS + "WHERE d.status = 'proposed' AND d.created_by = ? ORDER BY d.created_at DESC";
+
     private static final String FEED_ORDER = "ORDER BY COALESCE(d.decided_at, d.created_at) DESC ";
     private static final int RECENT_LIMIT = 12;  // the plain Recent decisions list
     private static final int SEARCH_LIMIT = 200; // a search or tag filter shows every match, up to this cap
@@ -82,6 +87,17 @@ public class DashboardDao {
     public List<Decision> findNeedsReview(int userId) throws SQLException {
         try (Connection conn = DbUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(NEEDS_REVIEW)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, userId);
+            return readDecisions(ps);
+        }
+    }
+
+    /** Decisions the viewer proposed that have not been approved yet, newest first. */
+    public List<Decision> findMyInReview(int userId) throws SQLException {
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(MY_IN_REVIEW)) {
 
             ps.setInt(1, userId);
             ps.setInt(2, userId);

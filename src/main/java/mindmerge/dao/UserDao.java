@@ -31,7 +31,10 @@ public class UserDao {
         "    WHERE tm.user_id = u.user_id AND tm.left_at IS NULL) AS teams, " +
         "  EXISTS (SELECT 1 FROM employee e " +
         "           WHERE e.user_id = u.user_id AND e.left_at IS NULL " +
-        "             AND e.company_role IN ('owner', 'admin')) AS is_admin " +
+        "             AND e.company_role IN ('owner', 'admin')) AS is_admin, " +
+        "  EXISTS (SELECT 1 FROM team_member tm " +
+        "           WHERE tm.user_id = u.user_id AND tm.left_at IS NULL " +
+        "             AND tm.team_role IN ('lead', 'approver')) AS is_reviewer " +
         "FROM `user` u WHERE u.user_id = ?";
 
     private static final String IS_ACTIVE =
@@ -90,6 +93,7 @@ public class UserDao {
                 v.setCompanies(rs.getString("companies"));
                 v.setTeams(rs.getString("teams"));
                 v.setAdmin(rs.getBoolean("is_admin"));
+                v.setReviewer(rs.getBoolean("is_reviewer"));
                 v.setAllowInvites(rs.getBoolean("allow_invites"));
                 return v;
             }

@@ -15,8 +15,11 @@
     <span class="nav-soon" aria-disabled="true">Decisions <span class="soon">Soon</span></span>
     <a class="${activeNav eq 'projects' ? 'is-active' : ''}" ${activeNav eq 'projects' ? 'aria-current="page"' : ''}
        href="${pageContext.request.contextPath}/projects">Projects</a>
-    <a class="${activeNav eq 'approvals' ? 'is-active' : ''}" ${activeNav eq 'approvals' ? 'aria-current="page"' : ''}
-       href="${pageContext.request.contextPath}/approvals">Approvals</a>
+    <%-- Only leads and approvers can approve, so only they get the link (ApprovalServlet still checks). --%>
+    <c:if test="${viewer.reviewer}">
+      <a class="${activeNav eq 'approvals' ? 'is-active' : ''}" ${activeNav eq 'approvals' ? 'aria-current="page"' : ''}
+         href="${pageContext.request.contextPath}/approvals">Approvals</a>
+    </c:if>
 
     <c:if test="${viewer.admin}">
       <p class="nav-group">Admin</p>

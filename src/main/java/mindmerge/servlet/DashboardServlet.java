@@ -52,6 +52,7 @@ public class DashboardServlet extends HttpServlet {
             request.setAttribute("viewer", userDao.findViewer(userId));
             request.setAttribute("invites", inviteDao.findPendingForUser(userId));
             request.setAttribute("review", dashboardDao.findNeedsReview(userId));
+            request.setAttribute("inReview", dashboardDao.findMyInReview(userId));
             request.setAttribute("feed", dashboardDao.findFeed(userId, mineOnly, query, tag));
             request.setAttribute("projects", dashboardDao.findProjects(userId));
             request.setAttribute("tags", dashboardDao.findTags(userId));

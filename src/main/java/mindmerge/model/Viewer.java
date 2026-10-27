@@ -8,6 +8,7 @@ public class Viewer {
     private String companies; // comma-separated company names
     private String teams;     // comma-separated team names
     private boolean admin;    // owner or admin at any of their companies
+    private boolean reviewer; // lead or approver on at least one current team, so may approve decisions
     private boolean allowInvites;
 
     public int getUserId()                { return userId; }
@@ -29,6 +30,9 @@ public class Viewer {
 
     public boolean isAdmin()              { return admin; }
     public void setAdmin(boolean v)       { this.admin = v; }
+
+    public boolean isReviewer()           { return reviewer; }
+    public void setReviewer(boolean v)    { this.reviewer = v; }
 
     public boolean isAllowInvites()       { return allowInvites; }
     public void setAllowInvites(boolean v) { this.allowInvites = v; }

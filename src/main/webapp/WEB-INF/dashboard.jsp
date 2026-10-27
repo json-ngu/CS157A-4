@@ -87,7 +87,9 @@
     </c:if>
 
     <c:if test="${empty error and viewer.inCompany}">
-      <%-- Proposed decisions on teams the viewer leads or approves for. --%>
+      <%-- Proposed decisions on teams the viewer leads or approves for. Members cannot approve,
+           so they never see this section. --%>
+      <c:if test="${viewer.reviewer}">
       <section class="dash-review" aria-labelledby="reviewHeading">
         <h2 id="reviewHeading">Awaiting your approval</h2>
         <c:choose>
@@ -107,6 +109,27 @@
           </c:otherwise>
         </c:choose>
       </section>
+      </c:if>
+
+      <%-- The viewer's own proposals still waiting for a lead or approver; once approved they
+           leave this list and show as Decided in the feed. --%>
+      <c:if test="${not empty inReview}">
+        <section class="box in-review" aria-labelledby="inReviewHeading">
+          <h2 id="inReviewHeading">Your decisions in review <span class="count"><c:out value="${fn:length(inReview)}"/></span></h2>
+          <ul class="row-list">
+            <c:forEach var="d" items="${inReview}">
+              <li class="row">
+                <div>
+                  <p class="row-meta"><c:out value="${d.projectName}"/></p>
+                  <p class="row-title"><c:out value="${d.title}"/></p>
+                  <p class="row-meta">Proposed on <c:out value="${d.dateAtTime(userZone)}"/></p>
+                </div>
+                <span class="status status-proposed">Awaiting approval</span>
+              </li>
+            </c:forEach>
+          </ul>
+        </section>
+      </c:if>
 
       <div class="dash-grid">
         <section class="dash-feed" id="feed" aria-labelledby="feedHeading">

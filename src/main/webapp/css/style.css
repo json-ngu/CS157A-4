@@ -1646,6 +1646,15 @@ body.legal {
 
 /* Awaiting your approval */
 
+/* Your decisions in review: the author's own proposals, with an amber "Awaiting approval" chip. */
+.in-review {
+  margin-bottom: 40px;
+}
+
+.in-review .status {
+  text-transform: none;
+}
+
 /* The one section that asks for action has an amber border. */
 .dash-review {
   margin-bottom: 40px;
