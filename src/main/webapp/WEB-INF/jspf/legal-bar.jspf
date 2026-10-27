@@ -1,0 +1,8 @@
+<%-- Top bar and course-project notice shared by the Privacy Policy and Terms of Service. --%>
+<header class="legal-bar">
+  <a class="brand" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
+  <nav class="legal-nav" aria-label="Legal">
+    <a href="${pageContext.request.contextPath}/privacy" ${legalPage eq 'privacy' ? 'aria-current="page"' : ''}>Privacy Policy</a>
+    <a href="${pageContext.request.contextPath}/terms" ${legalPage eq 'terms' ? 'aria-current="page"' : ''}>Terms of Service</a>
+  </nav>
+</header>

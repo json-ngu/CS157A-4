@@ -162,6 +162,11 @@
     </a>
   </div>
   <div>
+    <h2>Legal</h2>
+    <a href="${pageContext.request.contextPath}/privacy">Privacy Policy</a>
+    <a href="${pageContext.request.contextPath}/terms">Terms of Service</a>
+  </div>
+  <div>
     <h2>Team 4</h2>
     <p>Jason Nguyen</p>
     <p>Andrew Khoi Luu</p>

@@ -6,6 +6,7 @@
 <div class="auth-light" aria-hidden="true"><div class="hero-beam"></div></div>
 <div class="auth-orb" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
+<canvas class="auth-canvas" aria-hidden="true"></canvas>
 
 <main class="auth-card">
   <a class="brand brand-lg" href="${pageContext.request.contextPath}/home"><%@ include file="/WEB-INF/jspf/logo.jspf" %><span>MindMerge</span></a>
@@ -42,11 +43,17 @@
     </div>
 
     <button class="pill pill-glow pill-block" type="submit">Create account</button>
+    <p class="auth-legal">
+      By creating an account, you agree to the
+      <a href="${pageContext.request.contextPath}/terms">Terms of Service</a>
+      and acknowledge the <a href="${pageContext.request.contextPath}/privacy">Privacy Policy</a>.
+    </p>
   </form>
 
   <p class="auth-switch">Already have an account? <a href="${pageContext.request.contextPath}/login">Log in</a></p>
 </main>
 
 <script src="${pageContext.request.contextPath}/js/auth.js"></script>
+<script src="${pageContext.request.contextPath}/js/neural.js"></script>
 </body>
 </html>
