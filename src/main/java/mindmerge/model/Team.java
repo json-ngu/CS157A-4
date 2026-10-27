@@ -7,6 +7,7 @@ public class Team {
 
     private int          teamId;
     private String       name;
+    private String       companyName;  // set where teams from several companies are listed together
     private List<Member> members = new ArrayList<>(); // current members; role is team_role
 
     public int getTeamId()                 { return teamId; }
@@ -14,6 +15,9 @@ public class Team {
 
     public String getName()                { return name; }
     public void setName(String v)          { this.name = v; }
+
+    public String getCompanyName()         { return companyName; }
+    public void setCompanyName(String v)   { this.companyName = v; }
 
     public List<Member> getMembers()       { return members; }
     public void setMembers(List<Member> v) { this.members = v; }

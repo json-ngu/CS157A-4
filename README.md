@@ -27,8 +27,7 @@ This document covers how to set the project up and run it on macOS or Windows. T
 - **History is kept**: removing someone only ends their membership. Their decisions, comments
   and past memberships stay in the database.
 
-**Coming next** (shown as "Soon" in the sidebar): recording new decisions, the decisions list,
-projects, approvals, tags and the audit log.
+**Coming next** (shown as "Soon" in the sidebar): the decisions list, tags and the audit log.
 
 ## Demo accounts
 
